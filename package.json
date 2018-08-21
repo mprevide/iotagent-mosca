@@ -15,6 +15,7 @@
     "@dojot/iotagent-nodejs": "2.0.0-alpha.4",
     "express": "4.16.3",
     "mosca": "^2.8.0",
+    "prom-client": "^11.1.1",
     "redis": "^2.8.0"
   }
 }

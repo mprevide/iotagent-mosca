@@ -44,6 +44,21 @@ healthChecker.registerMonitor(monitor, collector, 10000);
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
+const client = require('prom-client');
+
+
+
+// Probe every 5th second.
+
+// client.collectDefaultMetrics({ register });
+const register = new client.Registry();
+const counter = new client.Counter({
+  name: 'nmessages',
+  help: 'number of received mqtt messages',
+  registers: [register]
+});
+
+
 var iota = new iotalib.IoTAgent();
 iota.init();
 logger.debug("... IoT agent was initialized");
@@ -81,6 +96,22 @@ var mosca_backend = {
   host: config.backend_host
 };
 
+var moscaSettings = {};
+
+
+const express = require('express');
+const metricsServer = express();
+
+metricsServer.get('/metrics', (req, res) => {
+	res.set('Content-Type', register.contentType);
+	res.end(register.metrics());
+});
+
+// metricsServer.get('/metrics/counter', (req, res) => {
+// 	res.set('Content-Type', register.contentType);
+// 	res.end(register.getSingleMetricAsString('mqtt_messages'));
+// });
+metricsServer.listen(3000);
 // MQTT with TLS and client certificate
 if (config.mosca_tls.enabled === 'true') {
 
