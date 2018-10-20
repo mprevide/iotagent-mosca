@@ -44,18 +44,6 @@ var mosca_backend = {
   host: config.backend_host
 };
 
-function isUserOnRate(clientId, redis, callback) {
-    client = redis.client(config.ratelimit_redis_port, config.ratelimit_redis_host);
-    client.on('error', function(err) {
-        logger.warn("Ratelimit: " + err);
-    });
-    client.on('connect'), () => {
-        client.decr("dojot:ratelimit:" + clientId, (err, res) => {
-            callback(null, res >= 0);
-        });
-    }
-}
-
 // MQTT with TLS and client certificate
 if (config.mosca_tls.enabled === 'true') {
 
@@ -110,12 +98,12 @@ server.on('ready', () => {
 function isUserOnRate(clientId, redis, callback) {
     if (config.enable_ratelimit) {
         return true;
-    };
+    }
     client = redis.client(config.ratelimit_redis_port, config.ratelimit_redis_host);
     client.on('error', function(err) {
         logger.warn("Ratelimit: " + err);
     });
-    client.on('connect'), () => {
+    client.on('connect'), function () {
         client.decr("dojot:ratelimit:" + clientId, (err, res) => {
             callback(null, res >= 0);
         });
@@ -189,8 +177,7 @@ function authenticate(client, username, password, callback) {
         isUserOnRate(client.id, redis, callback);
     } else {
         callback(null, true);
-
-    };
+    }
     logger.debug('Connection authorized for', client.id);
   }).catch((error) => {
     //reject client connection
