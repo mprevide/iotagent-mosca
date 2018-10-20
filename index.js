@@ -103,11 +103,11 @@ function isUserOnRate(clientId, redis, callback) {
     client.on('error', function(err) {
         logger.warn("Ratelimit: " + err);
     });
-    client.on('connect'), function () {
+    client.on('connect', function () {
         client.decr("dojot:ratelimit:" + clientId, (err, res) => {
             callback(null, res >= 0);
         });
-    }
+    });
 }
 
 // Helper Function to parse MQTT clientId
