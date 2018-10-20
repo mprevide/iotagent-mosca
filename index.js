@@ -4,6 +4,7 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
+var redis = require('redis');
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
@@ -36,12 +37,24 @@ var moscaSettings = {};
 
 var mosca_backend = {
   type: 'redis',
-  redis: require('redis'),
+  redis: redis,
   db: 12,
   port: config.backend_port,
   return_buffers: true, // to handle binary payloads
   host: config.backend_host
 };
+
+function isUserOnRate(clientId, redis, callback) {
+    client = redis.client(config.ratelimit_redis_port, config.ratelimit_redis_host);
+    client.on('error', function(err) {
+        logger.warn("Ratelimit: " + err);
+    });
+    client.on('connect'), () => {
+        client.decr("dojot:ratelimit:" + clientId, (err, res) => {
+            callback(null, res >= 0);
+        });
+    }
+}
 
 // MQTT with TLS and client certificate
 if (config.mosca_tls.enabled === 'true') {
@@ -92,6 +105,22 @@ server.on('ready', () => {
   server.authorizePublish = authorizePublish;
   server.authorizeSubscribe = authorizeSubscribe;
 });
+
+// Checks if user is on rate of requests, it uses redis to get how much messages can send
+function isUserOnRate(clientId, redis, callback) {
+    if (config.enable_ratelimit) {
+        return true;
+    };
+    client = redis.client(config.ratelimit_redis_port, config.ratelimit_redis_host);
+    client.on('error', function(err) {
+        logger.warn("Ratelimit: " + err);
+    });
+    client.on('connect'), () => {
+        client.decr("dojot:ratelimit:" + clientId, (err, res) => {
+            callback(null, res >= 0);
+        });
+    }
+}
 
 // Helper Function to parse MQTT clientId
 function parseClientIdOrTopic(clientId, topic) {
@@ -156,7 +185,12 @@ function authenticate(client, username, password, callback) {
     // add device to cache
     cache.set(client.id, { client });
     //authorize client connection
-    callback(null, true);
+    if (config.enable_ratelimit) {
+        isUserOnRate(client.id, redis, callback);
+    } else {
+        callback(null, true);
+
+    };
     logger.debug('Connection authorized for', client.id);
   }).catch((error) => {
     //reject client connection
