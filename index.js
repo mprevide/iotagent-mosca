@@ -4,6 +4,7 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
+var pjson = require('./package.json');
 
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
 var IServiceInfoDynamic = require('@dojot/healthcheck').IServiceInfoDynamic;
@@ -16,7 +17,7 @@ const configHealth = IServiceInfoDynamic = {
   description: "IoT agent - MQTT",
   releaseId: "0.3.0-nightly20181030 ",
   status: "pass",
-  version: "0.3.0-beta.1",
+  version: pjson.version,
 };
 const healthChecker = new HealthChecker(configHealth);
 
@@ -28,7 +29,6 @@ const monitor = IComponentDetails = {
   observedUnit: "MB",
   status: "pass",
 };
-
 const collector = Collector = (trigger = DataTrigger) => {
   // tslint:disable-next-line:no-console
   logger.debug('Cheking memory.');
