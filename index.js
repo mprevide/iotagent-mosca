@@ -7,13 +7,10 @@ var config = require('./config');
 var pjson = require('./package.json');
 
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
-var IServiceInfoDynamic = require('@dojot/healthcheck').IServiceInfoDynamic;
-var IComponentDetails = require('@dojot/healthcheck').IComponentDetails;
-var Collector = require('@dojot/healthcheck').Collector;
 var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var endpoint = require('@dojot/healthcheck').getHTTPRouter;
 
-const configHealth = IServiceInfoDynamic = {
+const configHealth = {
   description: "IoT agent - MQTT",
   releaseId: "0.3.0-nightly20181030 ",
   status: "pass",
@@ -21,7 +18,7 @@ const configHealth = IServiceInfoDynamic = {
 };
 const healthChecker = new HealthChecker(configHealth);
 
-const monitor = IComponentDetails = {
+const monitor = {
   componentId: "service-memory",
   componentName: "total memory used",
   componentType: "system",
@@ -29,7 +26,7 @@ const monitor = IComponentDetails = {
   observedUnit: "MB",
   status: "pass",
 };
-const collector = Collector = (trigger = DataTrigger) => {
+const collector = (trigger = DataTrigger) => {
   // tslint:disable-next-line:no-console
   logger.debug('Cheking memory.');
   const used = process.memoryUsage().heapUsed / 1024 / 1024;
