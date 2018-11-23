@@ -4,6 +4,43 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
+var pjson = require('./package.json');
+
+var HealthChecker = require('@dojot/healthcheck').HealthChecker;
+var DataTrigger = require('@dojot/healthcheck').DataTrigger;
+var endpoint = require('@dojot/healthcheck').getHTTPRouter;
+
+const configHealth = {
+  description: "IoT agent - MQTT",
+  releaseId: "0.3.0-nightly20181030 ",
+  status: "pass",
+  version: pjson.version,
+};
+const healthChecker = new HealthChecker(configHealth);
+
+const monitor = {
+  componentId: "service-memory",
+  componentName: "total memory used",
+  componentType: "system",
+  measurementName: "memory",
+  observedUnit: "MB",
+  status: "pass",
+};
+const collector = (trigger = DataTrigger) => {
+  // tslint:disable-next-line:no-console
+  logger.debug('Cheking memory.');
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  const round = Math.round(used * 100) / 100
+  if (round > 30) {
+    trigger.trigger(round, "fail", "i too high");
+  } else {
+    trigger.trigger(round, "pass", "I'm ok");
+  }
+
+  return round;
+};
+
+healthChecker.registerMonitor(monitor, collector, 10000);
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
@@ -16,6 +53,7 @@ var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
 app.use(bodyParser.json());
+app.use(endpoint(healthChecker))
 dojotLogger.addLoggerEndpoint(app);
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
