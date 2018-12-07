@@ -5,7 +5,6 @@ RUN apk --no-cache add git gcc g++ musl-dev make python bash zlib-dev
 WORKDIR /opt
 
 # the following is required for mosca to install correctly
-# RUN apk update && apk add zeromq-dev
 
 RUN apk update \
 	&& apk add -y --no-install-recommends py-openssl py-pip \
