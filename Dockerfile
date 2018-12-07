@@ -1,14 +1,16 @@
-FROM node:8
+FROM node:8.14.0-alpine
+
+RUN apk add git python make bash gzip gcc g++
+RUN apk --no-cache add gcc g++ musl-dev make python bash zlib-dev
 
 WORKDIR /opt
 
 # the following is required for mosca to install correctly
-RUN apt-get update && apt-get install libzmq-dev -y
+# RUN apk update && apk add zeromq-dev
 
-RUN apt-get update \
-	&& apt-get install  -y --no-install-recommends python-openssl python-pip \
+RUN apk update \
+	&& apk add -y --no-install-recommends py-openssl py-pip \
 	&& pip install requests kafka\
-	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
 ADD ./*.json /opt/

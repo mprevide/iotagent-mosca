@@ -291,7 +291,7 @@ server.on('published', function (packet, client) {
     return;
   }
 
-  logger.debug('Published', packet.topic, data, client.id);
+  logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
   //TODO: support only ISO string???
   let metadata = {};
