@@ -1,7 +1,6 @@
 FROM node:8.14.0-alpine
 
-RUN apk add git python make bash gzip gcc g++
-RUN apk --no-cache add gcc g++ musl-dev make python bash zlib-dev
+RUN apk --no-cache add git gcc g++ musl-dev make python bash zlib-dev
 
 WORKDIR /opt
 
