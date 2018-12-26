@@ -61,12 +61,12 @@ app.listen(10001, () => {
 logger.debug("... configuration endpoints were initialized");
 
 // Local device cache
+// Keeps the device associated with a MQTT client
 //
-// Once a MQTT client is authorized by the server, 
-// its corresponding dojot device is added to the cache
-// and kept there while the client is connected.
-// The clientId which MUST match the pattern tenant:deviceId
-// is used as the cache's key.
+// key: MQTT client ID
+// value: { client: <mosca client>, 
+//          tenant: <tenant>, 
+//          deviceId: <deviceId> }
 const cache = new Map();
 
 // Mosca Settings
@@ -122,10 +122,10 @@ var server = new mosca.Server(moscaSettings);
 // Fired when mosca server is ready
 server.on('ready', () => {
   logger.info('Mosca server is up and running');
+
   // callbacks
-  if (config.mosca_tls.enabled === 'true') {
-    server.authenticate = authenticate;
-  }
+  server.authenticate = authenticate;
+
   // Always check whether device is doing the right thing.
   server.authorizePublish = authorizePublish;
   server.authorizeSubscribe = authorizeSubscribe;
@@ -134,29 +134,20 @@ server.on('ready', () => {
 // Helper Function to parse MQTT clientId
 function parseClientIdOrTopic(clientId, topic) {
   if (clientId && (typeof clientId === 'string')) {
-    let parsedData = clientId.match(/^(\w+):(\w+)$/);
-    if (parsedData) {
-      return { tenant: parsedData[1], device: parsedData[2] };
+    let parsedClientId = clientId.match(/^(\w+):(\w+)$/);
+    if (parsedClientId) {
+      return { tenant: parsedClientId[1], device: parsedClientId[2] };
     }
   }
 
-  // If we're here, it means that TLS is not configured
-  // so fallback to topic-based id scheme
-  result = topic.match(/^\/([^/]+)\/([^/]+)/)
-  if (result) {
-    let exist = false;
-    logger.debug(`will attempt to use topic as tenant source ${result}`);
-    exist = iota.messenger.tenants.some((tenant) => {
-      if (result[1] === tenant) {
-        return true;
-      }
-    });
-    if (exist) {
-      return ({ tenant: result[1], device: result[2] });
+  // fallback to topic-based id scheme
+  if (topic && (typeof topic === 'string')) {
+    let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/)
+    if (parsedTopic) {
+      return ({ tenant: parsedTopic[1], device: parsedTopic[2] });
     }
-    logger.debug(`invalid tenant: ${result[1]}`);
-    return;
   }
+
   return;
 }
 
@@ -168,10 +159,20 @@ function authenticate(client, username, password, callback) {
   // Get tenant and deviceId from client.id
   let ids = parseClientIdOrTopic(client.id);
   if (!ids) {
-    //reject client connection
-    callback(null, false);
-    logger.warn(`Connection rejected for ${client.id}. Invalid clientId.`);
-    return;
+    if (config.mosca_tls.enabled === 'true') {
+      //reject client connection
+      callback(null, false);
+      logger.warn(`Connection rejected due to invalid ${client.id}.`);
+      return;
+    }
+    // 
+    else {
+      // (backward compatibility)
+      // authorize
+      cache.set(client.id, { client: client, tenant: null, deviceId: null });
+      callback(null, true);
+      return;
+    }
   }
 
   // Condition 2: Client certificate belongs to the
@@ -192,7 +193,7 @@ function authenticate(client, username, password, callback) {
   // Condition 3: Device exists in dojot
   iota.getDevice(ids.device, ids.tenant).then((device) => {
     // add device to cache
-    cache.set(client.id, { client });
+    cache.set(client.id, { client: client, tenant: ids.tenant, deviceId: ids.device });
     //authorize client connection
     callback(null, true);
     logger.debug('Connection authorized for', client.id);
@@ -200,7 +201,7 @@ function authenticate(client, username, password, callback) {
     //reject client connection
     callback(null, false);
     logger.warn(`Connection rejected for ${client.id}. Device doesn't exist in dojot.`);
-  })
+  });
 }
 
 // Function to authourize client to publish to
@@ -208,12 +209,51 @@ function authenticate(client, username, password, callback) {
 function authorizePublish(client, topic, payload, callback) {
   logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
 
+  let cacheEntry = cache.get(client.id);
+  if(!cacheEntry) {
+    // If this happens, there is something very wrong!!
+    callback(null, false);
+    logger.error(`Unexpected client ${client.id} trying to publish to topic ${topic}`);
+    return;
+  }
+
   let ids = parseClientIdOrTopic(client.id, topic);
   if (!ids) {
     callback(null, false);
-    logger.warn(`Rejected client ${client.id} to publish to topic ${topic}`);
+    logger.warn(`Client ${client.id} trying to publish to unexpected topic ${topic}`);
     return;
   }
+
+  // (backward compatibility)
+  if(cacheEntry.deviceId === null) {
+    // Device exists in dojot
+    iota.getDevice(ids.device, ids.tenant).then((device) => {
+      logger.debug(`Got device ${JSON.stringify(device)}`);
+      // add device to cache
+      cacheEntry.tenant = ids.tenant;
+      cacheEntry.deviceId = ids.device;
+      cache.set(client.id, cacheEntry);
+    }).catch((error) => {
+      //reject
+      callback(null, false);
+      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
+      logger.warn(`Client ${client.id} trying to publish to unknown 
+      device ${ids.device}.`);
+      return;
+    });
+  
+  }
+
+  // a client is not allowed to publish on behalf of more than one device 
+  if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
+    ids.device !== cacheEntry.deviceId) {
+    //reject
+    callback(null, false);
+    logger.warn(`Client ${client.id} trying to publish on behalf of 
+    devices: ${ids.device} and ${cacheEntry.deviceId}.`);
+    return;
+  }
+
   let expectedTopic = `/${ids.tenant}/${ids.device}/attrs`;
 
   logger.debug(`Expected topic is ${expectedTopic}`);
@@ -235,11 +275,52 @@ function authorizePublish(client, topic, payload, callback) {
 function authorizeSubscribe(client, topic, callback) {
   logger.debug(`Authorizing client ${client.id} to subscribe to ${topic}`);
 
+  let cacheEntry = cache.get(client.id);
+  if(!cacheEntry) {
+    // If this happens, there is something very wrong!!
+    callback(null, false);
+    logger.error(`Unexpected client ${client.id} trying to subscribe 
+    to topic ${topic}`);
+    return;
+  }
+
   let ids = parseClientIdOrTopic(client.id, topic);
   if (!ids) {
-    //reject client connection
+    //reject
     callback(null, false);
-    logger.warn(`Connection rejected for ${client.id}. Invalid clientId.`);
+    logger.warn(`Client ${client.id} is trying to subscribe to 
+    unexpected topic ${topic}`);
+    return;
+  }
+
+  // (backward compatibility)
+  if(cacheEntry.deviceId === null) {
+  
+    // Device exists in dojot
+    iota.getDevice(ids.device, ids.tenant).then((device) => {
+      logger.debug(`Got device ${JSON.stringify(device)}`);
+      // add device to cache
+      cacheEntry.tenant = ids.tenant;
+      cacheEntry.deviceId = ids.device;
+      cache.set(client.id, cacheEntry);
+    }).catch((error) => {
+      //reject
+      callback(null, false);
+      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
+      logger.warn(`Client ${client.id} trying to subscribe to unknown 
+      device ${ids.device}.`);
+      return;
+    });
+  
+  }
+
+  // a client is not allowed to subscribe on behalf of more than one device 
+  if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
+    ids.device !== cacheEntry.deviceId) {
+    //reject
+    callback(null, false);
+    logger.warn(`Client ${client.id} trying to subscribe on behalf of 
+    devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
 
@@ -339,8 +420,6 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   let topic = `/${tenant}/${deviceId}/config`;
 
   // device
-  // let cacheEntry = cache.get(`${tenant}:${deviceId}`);
-  // if (cacheEntry) {
   let message = {
     'topic': topic,
     'payload': JSON.stringify(event.data.attrs),
@@ -352,30 +431,42 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   logger.debug('Publishing', message)
   server.publish(message, () => { logger.debug('Message out!!') });
 
-    // TODO: send message/state(=sent) to history
-  // }
-  // else {
-  //   logger.debug(`Discading event because device is disconnected`);
-  //   // TODO: send message/state(=discarded) to history
-  // }
-
 });
 
-const deleteAndDisconnectCacheDevice = (event) => {
-  const id = event.data.id;
+const disconnectCachedDevice = (event) => {
+  const deviceId = event.data.id;
   const tenant = event.meta.service;
-  let cacheEntry = cache.get(`${tenant}:${id}`);
-  if (cacheEntry) {
-    let { client } = cache.get(`${tenant}:${id}`);
-    if (client) {
+  const key = `${tenant}:${deviceId}`;
+
+  let cacheEntry = cache.get(key);
+  if (cacheEntry && cacheEntry.tenant === tenant && 
+    cacheEntry.deviceId === deviceId) {
+    if (cacheEntry.client) {
+      cacheEntry.client.close();
+    }
+    cache.delete(key);
+  }
+  // (backward compatibility)
+  else {
+    let client;
+    // TODO: keep a reverse map?
+    for (let entry of cache.values()) {
+      if(entry.tenant === tenant && entry.deviceId === deviceId) {
+        client = entry.client;
+        break;
+      }
+    }
+    let clientId;
+    if(client) {
+      clientId = client.id;
       client.close();
     }
-    cache.delete(`${tenant}:${id}`);
+    cache.delete(clientId);
   }
 }
 
 // // Fired when a device.remove event is received
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.debug('Got device.remove event from Device Manager', tenant);
-  deleteAndDisconnectCacheDevice(event);
+  disconnectCachedDevice(event);
 });
