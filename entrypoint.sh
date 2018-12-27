@@ -2,18 +2,10 @@
 
 if [ "${MOSCA_TLS}" = "true" ]; then
     echo "Generating keys and certificates for TLS..."
-    echo "1"
-    /opt/initialConf.py
-    echo "... all security confgurations were performed."
-
-    if ! /opt/initialConf.py
-    then
-        echo "Error ocurred on initial mosca TLS setup"
-        return 1
-    fi
+    /opt/iot-agent/initialConf.py && echo "TLS configured." || { echo "Error on TLS setup"; exit 1; }
 else 
-    echo "No TLS is configured. All connections are not secured."
+    echo "No TLS is configured. All connections are unsecured."
 fi
 
 echo "Starting iotagent-mosca..."
-node /opt/index.js
+node /opt/iot-agent/index.js

@@ -1,26 +1,22 @@
-FROM node:8.14.0-alpine
+FROM node:8.14.0-alpine as basis
 
-RUN apk --no-cache add git gcc g++ musl-dev make python bash zlib-dev
+WORKDIR /opt/iot-agent
 
-WORKDIR /opt
+RUN apk add git python make bash gcc g++ zeromq-dev musl-dev zlib-dev krb5-dev --no-cache
 
-# the following is required for mosca to install correctly
-
-RUN apk update \
-	&& apk add -y --no-install-recommends py-openssl py-pip \
-	&& pip install requests kafka\
-	&& rm -rf /var/lib/apt/lists/*
-
-ADD ./*.json /opt/
-
-#Create dir for allocate tls auth files
-RUN mkdir -p /opt/mosca/certs/
+COPY package.json .
+COPY package-lock.json .
 
 RUN npm install
-ADD . /opt/
+COPY . .
 
+FROM node:8.14.0-alpine
+RUN apk add python py-openssl py-requests --no-cache
+COPY --from=basis  /opt/iot-agent /opt/iot-agent
+RUN mkdir -p /opt/iot-agent/mosca/certs/
+WORKDIR /opt/iot-agent
 
 
 EXPOSE 8883
 EXPOSE 1883
-CMD ["/opt/entrypoint.sh"]
+CMD ["/opt/iot-agent/entrypoint.sh"]
