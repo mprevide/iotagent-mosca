@@ -70,9 +70,7 @@ logger.debug("... configuration endpoints were initialized");
 const cache = new Map();
 
 // Mosca Settings
-var moscaSettings = {};
-
-var mosca_backend = {
+var moscaBackend = {
   type: 'redis',
   redis: require('redis'),
   db: 12,
@@ -81,41 +79,41 @@ var mosca_backend = {
   host: config.backend_host
 };
 
-// MQTT with TLS and client certificate
-if (config.mosca_tls.enabled === 'true') {
+var moscaInterfaces = [];
 
-  moscaSettings = {
-    backend: mosca_backend,
-    persistence: {
-      factory: mosca.persistence.Redis,
-      host: mosca_backend.host
-    },
-    type: "mqtts", // important to only use mqtts, not mqtt
-    credentials:
-    { // contains all security information
-      keyPath: config.mosca_tls.key,
-      certPath: config.mosca_tls.cert,
-      caPaths: [config.mosca_tls.ca],
-      requestCert: true, // enable requesting certificate from clients
-      rejectUnauthorized: true // only accept clients with valid certificate
-    },
-    secure: {
-      port: 8883  // 8883 is the standard mqtts port
-    }
+// mandatory
+var mqtts = {
+  type: "mqtts",
+  port: 8883,
+  credentials:
+  {
+    keyPath: config.mosca_tls.key,
+    certPath: config.mosca_tls.cert,
+    caPaths: [config.mosca_tls.ca],
+    requestCert: true, // enable requesting certificate from clients
+    rejectUnauthorized: true // only accept clients with valid certificate
+  }
+};
+moscaInterfaces.push(mqtts);
+
+// optional
+if (config.allow_unsecured_mode === 'true') {
+  var mqtt = {
+    type: "mqtt",
+    port: 1883
   };
+  moscaInterfaces.push(mqtt);
 }
-// MQTT without TLS 
-// (should only be used for debugging purposes or in a private environment)
-else {
-  moscaSettings = {
-    port: 1883,
-    backend: mosca_backend,
-    persistence: {
-      factory: mosca.persistence.Redis,
-      host: mosca_backend.host
-    }
-  };
-}
+
+var moscaSettings = {
+  backend: moscaBackend,
+  persistence: {
+    factory: mosca.persistence.Redis,
+    host: moscaBackend.host
+  },
+  interfaces: moscaInterfaces,
+  logger: { name: 'MoscaServer', level: 'info' }
+};
 
 var server = new mosca.Server(moscaSettings);
 
@@ -159,7 +157,7 @@ function authenticate(client, username, password, callback) {
   // Get tenant and deviceId from client.id
   let ids = parseClientIdOrTopic(client.id);
   if (!ids) {
-    if (config.mosca_tls.enabled === 'true') {
+    if (client.connection.stream.hasOwnProperty('TLSSocket')) {
       //reject client connection
       callback(null, false);
       logger.warn(`Connection rejected due to invalid ${client.id}.`);
@@ -178,7 +176,7 @@ function authenticate(client, username, password, callback) {
   // Condition 2: Client certificate belongs to the
   // device identified in the clientId
   // TODO: the clientId must contain the tenant too!
-  if (config.mosca_tls.enabled === 'true') {
+  if (client.connection.stream.hasOwnProperty('TLSSocket')) {
     clientCertificate = client.connection.stream.getPeerCertificate();
     if (!clientCertificate.hasOwnProperty('subject') ||
       !clientCertificate.subject.hasOwnProperty('CN') ||

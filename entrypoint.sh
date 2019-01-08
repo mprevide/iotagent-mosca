@@ -1,10 +1,12 @@
 #!/bin/sh
 
-if [ "${MOSCA_TLS}" = "true" ]; then
-    echo "Generating keys and certificates for TLS..."
-    /opt/iot-agent/initialConf.py && echo "TLS configured." || { echo "Error on TLS setup"; exit 1; }
+echo "Generating keys and certificates for TLS ..."
+/opt/iot-agent/initialConf.py && echo "TLS configured." || { echo "Error on TLS setup"; exit 1; }
+
+if [ "${ALLOW_UNSECURED_MODE}" = "true" ]; then
+    echo "MQTT and MQTTS are enabled."
 else 
-    echo "No TLS is configured. All connections are unsecured."
+    echo "Only MQTTS is enabled."
 fi
 
 echo "Starting iotagent-mosca..."
