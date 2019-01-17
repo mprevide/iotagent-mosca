@@ -15,6 +15,38 @@ var lastMetricsInfo = {
   messagesLoad5min: null,
   messagesLoad15min: null
 };
+var pjson = require('../package.json');
+
+var HealthChecker = require('@dojot/healthcheck').HealthChecker;
+var DataTrigger = require('@dojot/healthcheck').DataTrigger;
+var endpoint = require('@dojot/healthcheck').getHTTPRouter;
+
+const configHealth = {
+  description: "IoT agent - MQTT",
+  releaseId: "0.3.0-nightly20181030 ",
+  status: "pass",
+  version: pjson.version,
+};
+const healthChecker = new HealthChecker(configHealth);
+
+const monitor = {
+  componentId: "service-memory",
+  componentName: "total memory used",
+  componentType: "system",
+  measurementName: "memory",
+  observedUnit: "MB",
+  status: "pass",
+};
+const collector = (trigger = DataTrigger) => {
+  // tslint:disable-next-line:no-console
+  logger.debug('Cheking memory.');
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  const round = Math.round(used * 100) / 100
+  if (round > 30) {
+    trigger.trigger(round, "fail", "memory usage is high");
+  } else {
+    trigger.trigger(round, "pass", "I'm ok");
+  }
 
 var logLevel = config.logger.level;
 logger.setLevel(logLevel);
@@ -485,8 +517,8 @@ server.on('published', function (packet, client) {
 
 // Fired when a device.configure event is received
 // (from dojot to device)
-iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
-  logger.debug('Got configure event from Device Manager', event);
+iota.on('iotagent.device', 'device.configure', (tenant, event) => {
+  logger.debug('Got configure event from Device Manager', event)
   // device id
   let deviceId = event.data.id;
   delete event.data.id;
@@ -544,7 +576,7 @@ const disconnectCachedDevice = (event) => {
 };
 
 // // Fired when a device.remove event is received
-iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
+iota.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.debug('Got device.remove event from Device Manager', tenant);
   disconnectCachedDevice(event);
 });
