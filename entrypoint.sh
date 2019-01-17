@@ -5,9 +5,9 @@ echo "Generating keys and certificates for TLS ..."
 
 if [ "${ALLOW_UNSECURED_MODE}" = "true" ]; then
     echo "MQTT and MQTTS are enabled."
-else 
+else
     echo "Only MQTTS is enabled."
 fi
 
 echo "Starting iotagent-mosca..."
-node /opt/iot-agent/index.js
+node /opt/iot-agent/src/index.js

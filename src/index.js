@@ -4,7 +4,8 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
-var pjson = require('./package.json');
+var pjson = require('../package.json');
+
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
 var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var endpoint = require('@dojot/healthcheck').getHTTPRouter;
@@ -31,7 +32,7 @@ const collector = (trigger = DataTrigger) => {
   const used = process.memoryUsage().heapUsed / 1024 / 1024;
   const round = Math.round(used * 100) / 100
   if (round > 30) {
-    trigger.trigger(round, "fail", "i too high");
+    trigger.trigger(round, "fail", "memory usage is high");
   } else {
     trigger.trigger(round, "pass", "I'm ok");
   }
@@ -404,7 +405,7 @@ server.on('published', function (packet, client) {
 
 // Fired when a device.configure event is received
 // (from dojot to device)
-iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
+iota.on('iotagent.device', 'device.configure', (tenant, event) => {
   logger.debug('Got configure event from Device Manager', event)
   // device id
   let deviceId = event.data.id;
@@ -463,7 +464,7 @@ const disconnectCachedDevice = (event) => {
 }
 
 // // Fired when a device.remove event is received
-iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
+iota.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.debug('Got device.remove event from Device Manager', tenant);
   disconnectCachedDevice(event);
 });
