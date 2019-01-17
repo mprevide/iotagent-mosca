@@ -1,13 +1,26 @@
 {
   "name": "@dojot/iotagent-mqtt",
   "version": "0.3.0-beta.2",
-  "description": "",
+  "description": "An IoT agent for MQTT with JSON payload",
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dojot/iotagent-mosca.git"
+  },
+  "keywords": [
+    "dojot",
+    "iot",
+    "mqtt"
+  ],
   "author": "Matheus Magalhaes",
+  "bugs": {
+    "url": "https://github.com/dojot/iotagent-mosca/issues"
+  },
+  "homepage": "https://github.com/dojot/iotagent-mosca/#readme",
   "license": "GPL-3.0",
   "dependencies": {
     "@dojot/dojot-module-logger": "0.0.1-alpha.5",
