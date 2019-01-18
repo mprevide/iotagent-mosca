@@ -586,3 +586,40 @@ iota.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.error("Bailing out");
   process.kill(process.pid, "SIGTERM");
 });
+// var logger = require("@dojot/dojot-module-logger").logger;
+// const IoTAgent = require("./iotagent").IoTAgent;
+// const AgentHealthChecker = require("./healthcheck").AgentHealthChecker;
+// const app = require("./app");
+// const TAG = { filename: "main"};
+
+// var lastMetricsInfo = {
+//   connectedClients: null,
+//   connectionsLoad1min: null,
+//   connectionsLoad5min: null,
+//   connectionsLoad15min: null,
+//   messagesLoad1min: null,
+//   messagesLoad5min: null,
+//   messagesLoad15min: null
+// };
+
+// //service to get last metrics infos
+// app.get('/iotagent-mqtt/metrics', (req, res) => {
+//   if (lastMetricsInfo) {
+//       return res.status(200).json(lastMetricsInfo);
+//   } else {
+//       logger.debug(`Something unexpected happened`);
+//       return res.status(500).json({status: 'error', errors: []});
+//   }
+// });
+
+// logger.info(`Starting IoT agent MQTT...`, TAG);
+// const agent = new IoTAgent();
+// logger.info(`... IoT agent MQTT initialization started.`, TAG);
+// logger.info(`Starting health checker...`);
+// const healthChecker = new AgentHealthChecker();
+// agent.initHealthCheck(healthChecker.healthChecker);
+// logger.info(`... health checker started`);
+
+// logger.info(`Initializing endpoints...`, TAG);
+// app.initApp(healthChecker.healthChecker);
+// logger.info(`... app initialized.`, TAG);
