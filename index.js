@@ -6,6 +6,9 @@ var logger = dojotLogger.logger;
 var config = require('./config');
 var pjson = require('./package.json');
 
+var dojotConfig = require("@dojot/dojot-module").Config;
+
+var util = require("util");
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
 var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var endpoint = require('@dojot/healthcheck').getHTTPRouter;
@@ -45,7 +48,7 @@ healthChecker.registerMonitor(monitor, collector, 10000);
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
 var iota = new iotalib.IoTAgent();
-iota.init();
+iota.init().then(() => {
 logger.debug("... IoT agent was initialized");
 
 logger.debug("Initializing configuration endpoints...");
@@ -467,4 +470,10 @@ const disconnectCachedDevice = (event) => {
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.debug('Got device.remove event from Device Manager', tenant);
   disconnectCachedDevice(event);
+});
+
+}).catch((error)=> {
+  logger.error(`Could not initialize messenger: ${error}.`);
+  logger.error("Bailing out");
+  process.kill(process.pid, "SIGTERM");
 });
