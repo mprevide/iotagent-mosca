@@ -5,10 +5,6 @@ var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
 var pjson = require('./package.json');
-
-var dojotConfig = require("@dojot/dojot-module").Config;
-
-var util = require("util");
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
 var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var endpoint = require('@dojot/healthcheck').getHTTPRouter;
