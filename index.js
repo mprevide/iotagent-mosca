@@ -5,7 +5,6 @@ var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
 var pjson = require('./package.json');
-
 var HealthChecker = require('@dojot/healthcheck').HealthChecker;
 var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var endpoint = require('@dojot/healthcheck').getHTTPRouter;
@@ -45,7 +44,7 @@ healthChecker.registerMonitor(monitor, collector, 10000);
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
 var iota = new iotalib.IoTAgent();
-iota.init();
+iota.init().then(() => {
 logger.debug("... IoT agent was initialized");
 
 logger.debug("Initializing configuration endpoints...");
@@ -53,8 +52,8 @@ var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
 app.use(bodyParser.json());
-app.use(endpoint(healthChecker))
-dojotLogger.addLoggerEndpoint(app);
+app.use(endpoint(healthChecker));
+app.use(dojotLogger.getHTTPRouter())
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
@@ -64,8 +63,8 @@ logger.debug("... configuration endpoints were initialized");
 // Keeps the device associated with a MQTT client
 //
 // key: MQTT client ID
-// value: { client: <mosca client>, 
-//          tenant: <tenant>, 
+// value: { client: <mosca client>,
+//          tenant: <tenant>,
 //          deviceId: <deviceId> }
 const cache = new Map();
 
@@ -165,7 +164,7 @@ function authenticate(client, username, password, callback) {
       logger.warn(`Connection rejected due to invalid ${client.id}.`);
       return;
     }
-    // 
+    //
     else {
       // (backward compatibility)
       // authorize
@@ -237,19 +236,19 @@ function authorizePublish(client, topic, payload, callback) {
       //reject
       callback(null, false);
       logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to publish to unknown 
+      logger.warn(`Client ${client.id} trying to publish to unknown
       device ${ids.device}.`);
       return;
     });
-  
+
   }
 
-  // a client is not allowed to publish on behalf of more than one device 
+  // a client is not allowed to publish on behalf of more than one device
   if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
     ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} trying to publish on behalf of 
+    logger.warn(`Client ${client.id} trying to publish on behalf of
     devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
@@ -279,7 +278,7 @@ function authorizeSubscribe(client, topic, callback) {
   if(!cacheEntry) {
     // If this happens, there is something very wrong!!
     callback(null, false);
-    logger.error(`Unexpected client ${client.id} trying to subscribe 
+    logger.error(`Unexpected client ${client.id} trying to subscribe
     to topic ${topic}`);
     return;
   }
@@ -288,14 +287,14 @@ function authorizeSubscribe(client, topic, callback) {
   if (!ids) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} is trying to subscribe to 
+    logger.warn(`Client ${client.id} is trying to subscribe to
     unexpected topic ${topic}`);
     return;
   }
 
   // (backward compatibility)
   if(cacheEntry.deviceId === null) {
-  
+
     // Device exists in dojot
     iota.getDevice(ids.device, ids.tenant).then((device) => {
       logger.debug(`Got device ${JSON.stringify(device)}`);
@@ -307,19 +306,19 @@ function authorizeSubscribe(client, topic, callback) {
       //reject
       callback(null, false);
       logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to subscribe to unknown 
+      logger.warn(`Client ${client.id} trying to subscribe to unknown
       device ${ids.device}.`);
       return;
     });
-  
+
   }
 
-  // a client is not allowed to subscribe on behalf of more than one device 
+  // a client is not allowed to subscribe on behalf of more than one device
   if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
     ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} trying to subscribe on behalf of 
+    logger.warn(`Client ${client.id} trying to subscribe on behalf of
     devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
@@ -414,7 +413,7 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   delete event.data.id;
 
   // topic
-  // For now, we are still using slashes at the beginning. In the future, 
+  // For now, we are still using slashes at the beginning. In the future,
   // this will be removed (and topics will look like 'admin/efac/config')
   // let topic = `${tenant}/${deviceId}/config`;
   let topic = `/${tenant}/${deviceId}/config`;
@@ -439,7 +438,7 @@ const disconnectCachedDevice = (event) => {
   const key = `${tenant}:${deviceId}`;
 
   let cacheEntry = cache.get(key);
-  if (cacheEntry && cacheEntry.tenant === tenant && 
+  if (cacheEntry && cacheEntry.tenant === tenant &&
     cacheEntry.deviceId === deviceId) {
     if (cacheEntry.client) {
       cacheEntry.client.close();
@@ -469,4 +468,10 @@ const disconnectCachedDevice = (event) => {
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
   logger.debug('Got device.remove event from Device Manager', tenant);
   disconnectCachedDevice(event);
+});
+
+}).catch((error)=> {
+  logger.error(`Could not initialize messenger: ${error}.`);
+  logger.error("Bailing out");
+  process.kill(process.pid, "SIGTERM");
 });
