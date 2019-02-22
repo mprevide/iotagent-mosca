@@ -6,6 +6,10 @@ const healthCheck = require('@dojot/healthcheck');
 const logger = require("@dojot/dojot-module-logger").logger;
 
 const TAG = {filename: "app"};
+
+var isInitialized = false;
+var httpServer;
+
 function initApp(healthChecker) {
     const app = express();
 
@@ -15,13 +19,20 @@ function initApp(healthChecker) {
 
     logger.debug("Initializing configuration endpoints...", TAG);
 
-    app.listen(10001, () => {
-        logger.info(`Listening on port 10001.`, TAG);
+    httpServer = app.listen(10011, () => {
+        logger.info(`Listening on port 10011.`, TAG);
+        isInitialized = true;
     });
     logger.debug("... configuration endpoints were initialized", TAG);
 }
 
+function stopApp() {
+    if(isInitialized) {
+        httpServer.close();
+    }
+}
+
 module.exports = {
-    initApp,
+    initApp, stopApp
 };
 
