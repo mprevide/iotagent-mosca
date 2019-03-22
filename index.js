@@ -4,8 +4,6 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
-var pjson = require('./package.json');
-var DataTrigger = require('@dojot/healthcheck').DataTrigger;
 var AgentHealthChecker = require("./healthcheck");
 var redis = require("redis");
 
