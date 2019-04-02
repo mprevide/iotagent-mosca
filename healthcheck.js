@@ -157,7 +157,8 @@ class AgentHealthChecker {
     const kafka = {
       componentName: 'kafka',
       componentType: 'datastore',
-      measurementName: 'connections',
+      measurementName: 'accessibility',
+      observedUnit: 'boolean',
       status: 'pass'
     };
 
