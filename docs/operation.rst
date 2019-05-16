@@ -106,8 +106,7 @@ The message sent by iotagent-mosca is like this one:
         "metadata": {
             "deviceid": "c6ea4b",
             "tenant": "admin",
-            "timestamp": 1528226137452,
-            "templates": [2, 3]
+            "timestamp": 1528226137452
         },
         "attrs": {
             "humidity": 60
