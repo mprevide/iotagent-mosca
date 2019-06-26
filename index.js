@@ -6,7 +6,15 @@ var logger = dojotLogger.logger;
 var config = require('./config');
 var AgentHealthChecker = require("./healthcheck");
 var redis = require("redis");
-
+var lastMetricsInfo = {
+  connectedClients: null,
+  connectionsLoad1min: null,
+  connectionsLoad5min: null,
+  connectionsLoad15min: null,
+  messagesLoad1min: null,
+  messagesLoad5min: null,
+  messagesLoad15min: null
+};
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
@@ -22,9 +30,20 @@ logger.debug("Initializing configuration endpoints...");
 var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
+
+//service to get last metrics infos
+app.get('/iotagent-mqtt/metrics', (req, res) => {
+    if (lastMetricsInfo) {
+        return res.status(200).json(lastMetricsInfo);
+    } else {
+        logger.debug(`Something unexpected happened`);
+        return res.status(500).json({status: 'error', errors: []});
+    }
+});
+
 app.use(bodyParser.json());
 app.use(healthChecker.router);
-app.use(dojotLogger.getHTTPRouter())
+app.use(dojotLogger.getHTTPRouter());
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
@@ -82,6 +101,7 @@ var moscaSettings = {
     host: moscaBackend.host
   },
   interfaces: moscaInterfaces,
+  stats: true,
   logger: { name: 'MoscaServer', level: 'info' }
 };
 
@@ -318,7 +338,6 @@ server.on('clientDisconnected', function (client) {
   // delete device from cache
   cache.delete(client.id);
 });
-
 // Fired when a message is received by mosca server
 // (from device to dojot)
 server.on('published', function (packet, client) {
@@ -326,7 +345,58 @@ server.on('published', function (packet, client) {
   // ignore meta (internal) topics
   if ((packet.topic.split('/')[0] == '$SYS') ||
     (client === undefined) || (client === null)) {
-    logger.debug('ignoring internal message', packet.topic, client);
+    // logger.debug('ignoring internal message', packet.topic, client);
+    // let data = JSON.parse(packet.payload.toString());
+    const topic = packet.topic.split('/')[2]
+    const statisticsPayload = {}
+
+    switch (topic) {
+      case 'clients':
+        if(packet.topic.split('/')[3] == 'connected') {
+          statisticsPayload["connectedClients"] = packet.payload.toString()
+          lastMetricsInfo.connectedClients = packet.payload.toString()
+          logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+        }
+      break;
+     
+      case 'load':
+        if(packet.topic.split('/')[3] == 'connections') {
+          if(packet.topic.split('/')[4] == '1min') {
+            statisticsPayload["connectionsLoad1min"] = packet.payload.toString()
+            lastMetricsInfo.connectionsLoad1min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+          if(packet.topic.split('/')[4] == '5min') {
+            statisticsPayload["connectionsLoad5min"] = packet.payload.toString()
+            lastMetricsInfo.connectionsLoad5min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+          if(packet.topic.split('/')[4] == '15min') {
+            statisticsPayload["connectionsLoad15min"] = packet.payload.toString()
+            lastMetricsInfo.connectionsLoad15min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+        }
+        if(packet.topic.split('/')[3] == 'publish') {
+          if(packet.topic.split('/')[5] == '1min') {
+            statisticsPayload["messagesLoad1min"] = packet.payload.toString()
+            lastMetricsInfo.messagesLoad1min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+          if(packet.topic.split('/')[5] == '5min') {
+            statisticsPayload["messagesLoad5min"] = packet.payload.toString()
+            lastMetricsInfo.messagesLoad5min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+          if(packet.topic.split('/')[5] == '15min') {
+            statisticsPayload["messagesLoad15min"] = packet.payload.toString()
+            lastMetricsInfo.messagesLoad15min = packet.payload.toString()
+            logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+          }
+        }
+      break;
+    }
+
     return;
   }
 
