@@ -365,13 +365,11 @@ server.on('published', function (packet, client) {
             statisticsPayload["connectionsLoad1min"] = packet.payload.toString()
             lastMetricsInfo.connectionsLoad1min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-          }
-          if(packet.topic.split('/')[4] == '5min') {
+          } else if(packet.topic.split('/')[4] == '5min') {
             statisticsPayload["connectionsLoad5min"] = packet.payload.toString()
             lastMetricsInfo.connectionsLoad5min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-          }
-          if(packet.topic.split('/')[4] == '15min') {
+          } else {
             statisticsPayload["connectionsLoad15min"] = packet.payload.toString()
             lastMetricsInfo.connectionsLoad15min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
@@ -382,13 +380,11 @@ server.on('published', function (packet, client) {
             statisticsPayload["messagesLoad1min"] = packet.payload.toString()
             lastMetricsInfo.messagesLoad1min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-          }
-          if(packet.topic.split('/')[5] == '5min') {
+          } else if(packet.topic.split('/')[5] == '5min') {
             statisticsPayload["messagesLoad5min"] = packet.payload.toString()
             lastMetricsInfo.messagesLoad5min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-          }
-          if(packet.topic.split('/')[5] == '15min') {
+          } else {
             statisticsPayload["messagesLoad15min"] = packet.payload.toString()
             lastMetricsInfo.messagesLoad15min = packet.payload.toString()
             logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
