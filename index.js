@@ -6,7 +6,15 @@ var logger = dojotLogger.logger;
 var config = require('./config');
 var AgentHealthChecker = require("./healthcheck");
 var redis = require("redis");
-
+var lastMetricsInfo = {
+  connectedClients: null,
+  connectionsLoad1min: null,
+  connectionsLoad5min: null,
+  connectionsLoad15min: null,
+  messagesLoad1min: null,
+  messagesLoad5min: null,
+  messagesLoad15min: null
+};
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
@@ -22,9 +30,20 @@ logger.debug("Initializing configuration endpoints...");
 var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
+
+//service to get last metrics infos
+app.get('/iotagent-mqtt/metrics', (req, res) => {
+    if (lastMetricsInfo) {
+        return res.status(200).json(lastMetricsInfo);
+    } else {
+        logger.debug(`Something unexpected happened`);
+        return res.status(500).json({status: 'error', errors: []});
+    }
+});
+
 app.use(bodyParser.json());
 app.use(healthChecker.router);
-app.use(dojotLogger.getHTTPRouter())
+app.use(dojotLogger.getHTTPRouter());
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
