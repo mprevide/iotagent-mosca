@@ -352,6 +352,36 @@ server.on('published', function (packet, client) {
     logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`)
   }
 
+  function setMetadata (data) {
+    let metadata = {};
+    if ("timestamp" in data) {
+      metadata = { timestamp: 0 };
+      // If it is a number, just copy it. Probably Unix time.
+      if (typeof data.timestamp === "number") {
+        if (!isNaN(data.timestamp)) {
+          metadata.timestamp = data.timestamp;
+        }
+        else {
+          logger.warn("Received an invalid timestamp (NaN)");
+          metadata = {};
+        }
+      }
+      else {
+        // If it is a ISO string...
+        const parsed = Date.parse(data.timestamp);
+        if (!isNaN(parsed)) {
+          metadata.timestamp = parsed;
+        }
+        else {
+          // Invalid timestamp.
+          metadata = {};
+        }
+      }
+    }
+
+    return metadata;
+  }
+
   const topicType = getTopicParameter(packet.topic, 0)
 
   // ignore meta (internal) topics
@@ -421,31 +451,8 @@ server.on('published', function (packet, client) {
   logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
   //TODO: support only ISO string???
-  let metadata = {};
-  if ("timestamp" in data) {
-    metadata = { timestamp: 0 };
-    // If it is a number, just copy it. Probably Unix time.
-    if (typeof data.timestamp === "number") {
-      if (!isNaN(data.timestamp)) {
-        metadata.timestamp = data.timestamp;
-      }
-      else {
-        logger.warn("Received an invalid timestamp (NaN)");
-        metadata = {};
-      }
-    }
-    else {
-      // If it is a ISO string...
-      const parsed = Date.parse(data.timestamp);
-      if (!isNaN(parsed)) {
-        metadata.timestamp = parsed;
-      }
-      else {
-        // Invalid timestamp.
-        metadata = {};
-      }
-    }
-  }
+  let metadata = setMetadata(data);
+
   //send data to dojot broker
   let ids = parseClientIdOrTopic(client.id, packet.topic);
   iota.updateAttrs(ids.device, ids.tenant, data, metadata);
