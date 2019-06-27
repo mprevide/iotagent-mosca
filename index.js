@@ -355,7 +355,7 @@ server.on('published', function (packet, client) {
   const topicType = getTopicParameter(packet.topic, 0)
 
   // ignore meta (internal) topics
-	if ( topicType == '$SYS') {
+	if ( topicType === '$SYS') {
 
     const topic = getTopicParameter(packet.topic, 2)
     const topicMetrics = getTopicParameter(packet.topic, 3)
@@ -365,13 +365,13 @@ server.on('published', function (packet, client) {
 
 		switch (topic) {
 			case 'clients':
-				if(topicMetrics == 'connected') {
+				if(topicMetrics === 'connected') {
 					preparePayloadObject(lastMetricsInfo, 'connectedClients', payload)
 				}
 			  break;
 		 
 			case 'load':
-				if(topicMetrics == 'connections') {
+				if(topicMetrics === 'connections') {
           switch (topicConnectionsInterval) {
             case '1min':
               preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload)
@@ -387,7 +387,7 @@ server.on('published', function (packet, client) {
           }
 				}
 
-        if(topicMetrics == 'publish') {
+        if(topicMetrics === 'publish') {
           switch (topicMessagesInterval) {
             case '1min':
               preparePayloadObject(lastMetricsInfo, 'messagesLoad1min', payload)
