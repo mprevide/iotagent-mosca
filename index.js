@@ -6,7 +6,15 @@ var logger = dojotLogger.logger;
 var config = require('./config');
 var AgentHealthChecker = require("./healthcheck");
 var redis = require("redis");
-
+var lastMetricsInfo = {
+  connectedClients: null,
+  connectionsLoad1min: null,
+  connectionsLoad5min: null,
+  connectionsLoad15min: null,
+  messagesLoad1min: null,
+  messagesLoad5min: null,
+  messagesLoad15min: null
+};
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
@@ -22,9 +30,20 @@ logger.debug("Initializing configuration endpoints...");
 var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
+
+//service to get last metrics infos
+app.get('/iotagent-mqtt/metrics', (req, res) => {
+    if (lastMetricsInfo) {
+        return res.status(200).json(lastMetricsInfo);
+    } else {
+        logger.debug(`Something unexpected happened`);
+        return res.status(500).json({status: 'error', errors: []});
+    }
+});
+
 app.use(bodyParser.json());
 app.use(healthChecker.router);
-app.use(dojotLogger.getHTTPRouter())
+app.use(dojotLogger.getHTTPRouter());
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
@@ -82,6 +101,7 @@ var moscaSettings = {
     host: moscaBackend.host
   },
   interfaces: moscaInterfaces,
+  stats: true,
   logger: { name: 'MoscaServer', level: 'info' }
 };
 
@@ -323,10 +343,100 @@ server.on('clientDisconnected', function (client) {
 // (from device to dojot)
 server.on('published', function (packet, client) {
 
-  // ignore meta (internal) topics
-  if ((packet.topic.split('/')[0] == '$SYS') ||
-    (client === undefined) || (client === null)) {
-    logger.debug('ignoring internal message', packet.topic, client);
+  function getTopicParameter(topic, index) {
+    return topic.split('/')[index]
+  }
+
+  function preparePayloadObject(payloadObject, payloadTopic, payloadValue) {
+    payloadObject[`${payloadTopic}`] = `${payloadValue}`
+    logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`)
+  }
+
+
+  //TODO: support only ISO string???
+  function setMetadata (data) {
+    let metadata = {};
+    if ("timestamp" in data) {
+      metadata = { timestamp: 0 };
+      // If it is a number, just copy it. Probably Unix time.
+      if (typeof data.timestamp === "number") {
+        if (!isNaN(data.timestamp)) {
+          metadata.timestamp = data.timestamp;
+        }
+        else {
+          logger.warn("Received an invalid timestamp (NaN)");
+          metadata = {};
+        }
+      }
+      else {
+        // If it is a ISO string...
+        const parsed = Date.parse(data.timestamp);
+        if (!isNaN(parsed)) {
+          metadata.timestamp = parsed;
+        }
+        else {
+          // Invalid timestamp.
+          metadata = {};
+        }
+      }
+    }
+
+    return metadata;
+  }
+
+  const topicType = getTopicParameter(packet.topic, 0)
+
+  // publish metrics topics
+  if ( topicType === '$SYS') {
+
+    const topic = getTopicParameter(packet.topic, 2)
+    const topicMetrics = getTopicParameter(packet.topic, 3)
+    const topicConnectionsInterval = getTopicParameter(packet.topic, 4)
+    const topicMessagesInterval = getTopicParameter(packet.topic, 5)
+    const payload = packet.payload.toString()
+
+    switch (topic) {
+      case 'clients':
+        if(topicMetrics === 'connected') {
+          preparePayloadObject(lastMetricsInfo, 'connectedClients', payload)
+        }
+        break;
+     
+      case 'load':
+        if(topicMetrics === 'connections') {
+          switch (topicConnectionsInterval) {
+            case '1min':
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload)
+              break;
+
+            case '5min':
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad5min', payload)
+              break;
+
+            default:
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad15min', payload)
+            break;
+          }
+        }
+
+        if(topicMetrics === 'publish') {
+          switch (topicMessagesInterval) {
+            case '1min':
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad1min', payload)
+              break;
+
+            case '5min':
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad5min', payload)
+              break;
+
+            default:
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad15min', payload)
+              break;
+          }
+        }
+        break;
+    }
+    
     return;
   }
 
@@ -342,32 +452,8 @@ server.on('published', function (packet, client) {
 
   logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
-  //TODO: support only ISO string???
-  let metadata = {};
-  if ("timestamp" in data) {
-    metadata = { timestamp: 0 };
-    // If it is a number, just copy it. Probably Unix time.
-    if (typeof data.timestamp === "number") {
-      if (!isNaN(data.timestamp)) {
-        metadata.timestamp = data.timestamp;
-      }
-      else {
-        logger.warn("Received an invalid timestamp (NaN)");
-        metadata = {};
-      }
-    }
-    else {
-      // If it is a ISO string...
-      const parsed = Date.parse(data.timestamp);
-      if (!isNaN(parsed)) {
-        metadata.timestamp = parsed;
-      }
-      else {
-        // Invalid timestamp.
-        metadata = {};
-      }
-    }
-  }
+  let metadata = setMetadata(data);
+
   //send data to dojot broker
   let ids = parseClientIdOrTopic(client.id, packet.topic);
   iota.updateAttrs(ids.device, ids.tenant, data, metadata);
