@@ -363,34 +363,47 @@ server.on('published', function (packet, client) {
 					lastMetricsInfo.connectedClients = payload
 					logger.debug(`Published metric: connectedClients=${lastMetricsInfo.connectedClients}`)
 				}
-			break;
+			  break;
 		 
 			case 'load':
 				if(topicMetrics == 'connections') {
-					if(topicConnectionsInterval == '1min') {
-						lastMetricsInfo.connectionsLoad1min = payload
-						logger.debug(`Published metric: connectionsLoad1min=${lastMetricsInfo.connectionsLoad1min}`)
-					} else if(topicConnectionsInterval == '5min') {
-						lastMetricsInfo.connectionsLoad5min = payload
-						logger.debug(`Published metric: connectionsLoad5min=${lastMetricsInfo.connectionsLoad5min}`)
-					} else {
-						lastMetricsInfo.connectionsLoad15min = payload
-						logger.debug(`Published metric: connectionsLoad15min=${lastMetricsInfo.connectionsLoad15min}`)
-					}
+          switch (topicConnectionsInterval) {
+            case '1min':
+              lastMetricsInfo.connectionsLoad1min = payload
+              logger.debug(`Published metric: connectionsLoad1min=${lastMetricsInfo.connectionsLoad1min}`)
+              break;
+
+            case '5min':
+              lastMetricsInfo.connectionsLoad5min = payload
+              logger.debug(`Published metric: connectionsLoad5min=${lastMetricsInfo.connectionsLoad5min}`)
+              break;
+
+            default:
+              lastMetricsInfo.connectionsLoad15min = payload
+              logger.debug(`Published metric: connectionsLoad15min=${lastMetricsInfo.connectionsLoad15min}`)
+              break;
+          }
 				}
-				if(topicMetrics == 'publish') {
-					if(topicMessagesInterval == '1min') {
-						lastMetricsInfo.messagesLoad1min = payload
-						logger.debug(`Published metric: messagesLoad1min=${lastMetricsInfo.messagesLoad1min}`)
-					} else if(topicMessagesInterval == '5min') {
-						lastMetricsInfo.messagesLoad5min = payload
-						logger.debug(`Published metric: messagesLoad5min=${lastMetricsInfo.messagesLoad5min}`)
-					} else {
-						lastMetricsInfo.messagesLoad15min = payload
-						logger.debug(`Published metric: messagesLoad15min=${lastMetricsInfo.messagesLoad15min}`)
-					}
+
+        if(topicMetrics == 'publish') {
+          switch (topicMessagesInterval) {
+            case '1min':
+              lastMetricsInfo.messagesLoad1min = payload
+						  logger.debug(`Published metric: messagesLoad1min=${lastMetricsInfo.messagesLoad1min}`)
+              break;
+
+              case '5min':
+                lastMetricsInfo.messagesLoad5min = payload
+                logger.debug(`Published metric: messagesLoad5min=${lastMetricsInfo.messagesLoad5min}`)
+              break;
+
+              default:
+                lastMetricsInfo.messagesLoad15min = payload
+                logger.debug(`Published metric: messagesLoad15min=${lastMetricsInfo.messagesLoad15min}`)
+                break;
+          }
 				}
-			break;
+			  break;
     }
     
 		return;
