@@ -130,7 +130,7 @@ function parseClientIdOrTopic(clientId, topic) {
 
   // fallback to topic-based id scheme
   if (topic && (typeof topic === 'string')) {
-    let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/)
+    let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
     if (parsedTopic) {
       return ({ tenant: parsedTopic[1], device: parsedTopic[2] });
     }
@@ -194,7 +194,7 @@ function authenticate(client, username, password, callback) {
 
 // Function to authourize client to publish to
 // topic: {tenant}/{deviceId}/attrs
-function authorizePublish(client, topic, payload, callback) {
+async function authorizePublish(client, topic, payload, callback) {
   logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
@@ -212,24 +212,33 @@ function authorizePublish(client, topic, payload, callback) {
     return;
   }
 
+  let deviceExist = true;
+
   // (backward compatibility)
   if(cacheEntry.deviceId === null) {
     // Device exists in dojot
-    iota.getDevice(ids.device, ids.tenant).then((device) => {
+    await iota.getDevice(ids.device, ids.tenant).then((device) => {
       logger.debug(`Got device ${JSON.stringify(device)}`);
       // add device to cache
       cacheEntry.tenant = ids.tenant;
       cacheEntry.deviceId = ids.device;
       cache.set(client.id, cacheEntry);
+
     }).catch((error) => {
       //reject
-      callback(null, false);
       logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to publish to unknown
-      device ${ids.device}.`);
-      return;
+      deviceExist = false;
     });
 
+  }
+
+  //stop publish
+  if (!deviceExist) {
+    callback(null, false);
+    logger.debug(`Device ${ids.device} doest exist `);
+    logger.warn(`Client ${client.id} trying to publish on behalf of
+    devices: ${ids.device} and ${cacheEntry.deviceId}.`);
+    return;
   }
 
   // a client is not allowed to publish on behalf of more than one device
@@ -297,7 +306,7 @@ function authorizeSubscribe(client, topic, callback) {
       logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
       logger.warn(`Client ${client.id} trying to subscribe to unknown
       device ${ids.device}.`);
-      return;
+
     });
 
   }
@@ -344,12 +353,12 @@ server.on('clientDisconnected', function (client) {
 server.on('published', function (packet, client) {
 
   function getTopicParameter(topic, index) {
-    return topic.split('/')[index]
+    return topic.split('/')[index];
   }
 
   function preparePayloadObject(payloadObject, payloadTopic, payloadValue) {
-    payloadObject[`${payloadTopic}`] = `${payloadValue}`
-    logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`)
+    payloadObject[`${payloadTopic}`] = `${payloadValue}`;
+    logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`);
   }
 
 
@@ -384,37 +393,37 @@ server.on('published', function (packet, client) {
     return metadata;
   }
 
-  const topicType = getTopicParameter(packet.topic, 0)
+  const topicType = getTopicParameter(packet.topic, 0);
 
   // publish metrics topics
   if ( topicType === '$SYS') {
 
-    const topic = getTopicParameter(packet.topic, 2)
-    const topicMetrics = getTopicParameter(packet.topic, 3)
-    const topicConnectionsInterval = getTopicParameter(packet.topic, 4)
-    const topicMessagesInterval = getTopicParameter(packet.topic, 5)
-    const payload = packet.payload.toString()
+    const topic = getTopicParameter(packet.topic, 2);
+    const topicMetrics = getTopicParameter(packet.topic, 3);
+    const topicConnectionsInterval = getTopicParameter(packet.topic, 4);
+    const topicMessagesInterval = getTopicParameter(packet.topic, 5);
+    const payload = packet.payload.toString();
 
     switch (topic) {
       case 'clients':
         if(topicMetrics === 'connected') {
-          preparePayloadObject(lastMetricsInfo, 'connectedClients', payload)
+          preparePayloadObject(lastMetricsInfo, 'connectedClients', payload);
         }
         break;
-     
+
       case 'load':
         if(topicMetrics === 'connections') {
           switch (topicConnectionsInterval) {
             case '1min':
-              preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload)
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload);
               break;
 
             case '5min':
-              preparePayloadObject(lastMetricsInfo, 'connectionsLoad5min', payload)
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad5min', payload);
               break;
 
             default:
-              preparePayloadObject(lastMetricsInfo, 'connectionsLoad15min', payload)
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad15min', payload);
             break;
           }
         }
@@ -422,21 +431,21 @@ server.on('published', function (packet, client) {
         if(topicMetrics === 'publish') {
           switch (topicMessagesInterval) {
             case '1min':
-              preparePayloadObject(lastMetricsInfo, 'messagesLoad1min', payload)
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad1min', payload);
               break;
 
             case '5min':
-              preparePayloadObject(lastMetricsInfo, 'messagesLoad5min', payload)
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad5min', payload);
               break;
 
             default:
-              preparePayloadObject(lastMetricsInfo, 'messagesLoad15min', payload)
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad15min', payload);
               break;
           }
         }
         break;
     }
-    
+
     return;
   }
 
@@ -462,7 +471,7 @@ server.on('published', function (packet, client) {
 // Fired when a device.configure event is received
 // (from dojot to device)
 iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
-  logger.debug('Got configure event from Device Manager', event)
+  logger.debug('Got configure event from Device Manager', event);
   // device id
   let deviceId = event.data.id;
   delete event.data.id;
@@ -482,8 +491,8 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   };
 
   // send data to device
-  logger.debug('Publishing', message)
-  server.publish(message, () => { logger.debug('Message out!!') });
+  logger.debug('Publishing', message);
+  server.publish(message, () => { logger.debug('Message out!!');});
 
 });
 
@@ -517,7 +526,7 @@ const disconnectCachedDevice = (event) => {
     }
     cache.delete(clientId);
   }
-}
+};
 
 // // Fired when a device.remove event is received
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
