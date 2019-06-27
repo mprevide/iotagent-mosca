@@ -347,9 +347,10 @@ server.on('published', function (packet, client) {
     return topic.split('/')[index]
   }
 
-	// ignore meta (internal) topics
-	if ((getTopicParameter(packet.topic, 0) == '$SYS') ||
-		(client === undefined) || (client === null)) {
+  const topicType = getTopicParameter(packet.topic, 0)
+
+  // ignore meta (internal) topics
+	if ( topicType == '$SYS') {
 
     const topic = getTopicParameter(packet.topic, 2)
     const topicMetrics = getTopicParameter(packet.topic, 3)
