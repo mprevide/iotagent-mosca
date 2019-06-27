@@ -101,7 +101,7 @@ var moscaSettings = {
     host: moscaBackend.host
   },
   interfaces: moscaInterfaces,
-	stats: true,
+  stats: true,
   logger: { name: 'MoscaServer', level: 'info' }
 };
 
@@ -352,6 +352,8 @@ server.on('published', function (packet, client) {
     logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`)
   }
 
+
+  //TODO: support only ISO string???
   function setMetadata (data) {
     let metadata = {};
     if ("timestamp" in data) {
@@ -384,24 +386,24 @@ server.on('published', function (packet, client) {
 
   const topicType = getTopicParameter(packet.topic, 0)
 
-  // ignore meta (internal) topics
-	if ( topicType === '$SYS') {
+  // publish metrics topics
+  if ( topicType === '$SYS') {
 
     const topic = getTopicParameter(packet.topic, 2)
     const topicMetrics = getTopicParameter(packet.topic, 3)
     const topicConnectionsInterval = getTopicParameter(packet.topic, 4)
     const topicMessagesInterval = getTopicParameter(packet.topic, 5)
-		const payload = packet.payload.toString()
+    const payload = packet.payload.toString()
 
-		switch (topic) {
-			case 'clients':
-				if(topicMetrics === 'connected') {
-					preparePayloadObject(lastMetricsInfo, 'connectedClients', payload)
-				}
-			  break;
-		 
-			case 'load':
-				if(topicMetrics === 'connections') {
+    switch (topic) {
+      case 'clients':
+        if(topicMetrics === 'connected') {
+          preparePayloadObject(lastMetricsInfo, 'connectedClients', payload)
+        }
+        break;
+     
+      case 'load':
+        if(topicMetrics === 'connections') {
           switch (topicConnectionsInterval) {
             case '1min':
               preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload)
@@ -415,7 +417,7 @@ server.on('published', function (packet, client) {
               preparePayloadObject(lastMetricsInfo, 'connectionsLoad15min', payload)
             break;
           }
-				}
+        }
 
         if(topicMetrics === 'publish') {
           switch (topicMessagesInterval) {
@@ -431,12 +433,12 @@ server.on('published', function (packet, client) {
               preparePayloadObject(lastMetricsInfo, 'messagesLoad15min', payload)
               break;
           }
-				}
-			  break;
+        }
+        break;
     }
     
-		return;
-	}
+    return;
+  }
 
   // handle packet
   let data;
@@ -450,7 +452,6 @@ server.on('published', function (packet, client) {
 
   logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
-  //TODO: support only ISO string???
   let metadata = setMetadata(data);
 
   //send data to dojot broker
