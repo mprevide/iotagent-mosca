@@ -343,57 +343,56 @@ server.on('clientDisconnected', function (client) {
 // (from device to dojot)
 server.on('published', function (packet, client) {
 
+  function getTopicParameter(topic, index) {
+    return topic.split('/')[index]
+  }
+
 	// ignore meta (internal) topics
-	if ((packet.topic.split('/')[0] == '$SYS') ||
+	if ((getTopicParameter(packet.topic, 0) == '$SYS') ||
 		(client === undefined) || (client === null)) {
-		const topic = packet.topic.split('/')[2]
-		const topicMetrics = packet.topic.split('/')[3]
-		const statisticsPayload = {}
+
+    const topic = getTopicParameter(packet.topic, 2)
+    const topicMetrics = getTopicParameter(packet.topic, 3)
+    const topicConnectionsInterval = getTopicParameter(packet.topic, 4)
+    const topicMessagesInterval = getTopicParameter(packet.topic, 5)
 		const payload = packet.payload.toString()
 
 		switch (topic) {
 			case 'clients':
 				if(topicMetrics == 'connected') {
-					statisticsPayload["connectedClients"] = payload
 					lastMetricsInfo.connectedClients = payload
-					logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+					logger.debug(`Published metric: connectedClients=${lastMetricsInfo.connectedClients}`)
 				}
 			break;
 		 
 			case 'load':
 				if(topicMetrics == 'connections') {
-					if(packet.topic.split('/')[4] == '1min') {
-						statisticsPayload["connectionsLoad1min"] = payload
+					if(topicConnectionsInterval == '1min') {
 						lastMetricsInfo.connectionsLoad1min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-					} else if(packet.topic.split('/')[4] == '5min') {
-						statisticsPayload["connectionsLoad5min"] = payload
+						logger.debug(`Published metric: connectionsLoad1min=${lastMetricsInfo.connectionsLoad1min}`)
+					} else if(topicConnectionsInterval == '5min') {
 						lastMetricsInfo.connectionsLoad5min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+						logger.debug(`Published metric: connectionsLoad5min=${lastMetricsInfo.connectionsLoad5min}`)
 					} else {
-						statisticsPayload["connectionsLoad15min"] = payload
 						lastMetricsInfo.connectionsLoad15min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+						logger.debug(`Published metric: connectionsLoad15min=${lastMetricsInfo.connectionsLoad15min}`)
 					}
 				}
 				if(topicMetrics == 'publish') {
-					if(packet.topic.split('/')[5] == '1min') {
-						statisticsPayload["messagesLoad1min"] = payload
+					if(topicMessagesInterval == '1min') {
 						lastMetricsInfo.messagesLoad1min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
-					} else if(packet.topic.split('/')[5] == '5min') {
-						statisticsPayload["messagesLoad5min"] = payload
+						logger.debug(`Published metric: messagesLoad1min=${lastMetricsInfo.messagesLoad1min}`)
+					} else if(topicMessagesInterval == '5min') {
 						lastMetricsInfo.messagesLoad5min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+						logger.debug(`Published metric: messagesLoad5min=${lastMetricsInfo.messagesLoad5min}`)
 					} else {
-						statisticsPayload["messagesLoad15min"] = payload
 						lastMetricsInfo.messagesLoad15min = payload
-						logger.debug(`Published data: ${JSON.stringify(statisticsPayload)}`)
+						logger.debug(`Published metric: messagesLoad15min=${lastMetricsInfo.messagesLoad15min}`)
 					}
 				}
 			break;
-		}
-
+    }
+    
 		return;
 	}
 
