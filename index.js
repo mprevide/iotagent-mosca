@@ -450,6 +450,11 @@ server.on('published', function (packet, client) {
     return;
   }
 
+  if ((client === undefined) || (client === null)) {
+    logger.debug('ignoring internal message', packet.topic, client);
+    return;
+  }
+
   // handle packet
   let data;
   try {
