@@ -132,7 +132,7 @@ class AgentHealthChecker {
             };
 
             // It can be the consumer or the producer because the returned value is the same.
-            this.kafkaMessenger.consumer.consumer.getMetadata({timeout: 3000},
+            this.kafkaMessenger.consumer.consumer.getMetadata({ timeout: 3000 },
                 (error, metadata) => {
                     if (error) {
                         reject(new Error('Internal error while getting kafka metadata.'));
@@ -158,8 +158,7 @@ class AgentHealthChecker {
         };
 
 
-        const collectKafkaState = (trigger = HealthCheck.DataTrigger) =>
-            this._getKafkaStatus().then((status) => {
+        const collectKafkaState = (trigger = HealthCheck.DataTrigger) => this._getKafkaStatus().then((status) => {
                 if (status.connected) {
                     trigger.trigger(1 /* one connection */, 'pass');
                 } else {
