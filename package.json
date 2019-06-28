@@ -5,6 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
+    "lint": "eslint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Matheus Magalhaes",
@@ -16,5 +17,10 @@
     "express": "4.16.3",
     "mosca": "^2.8.0",
     "redis": "^2.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.18.0"
   }
 }

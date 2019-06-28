@@ -1,12 +1,15 @@
 #!/usr/bin/node
-var mosca = require('mosca');
-var iotalib = require('@dojot/iotagent-nodejs');
-var dojotLogger = require("@dojot/dojot-module-logger");
-var logger = dojotLogger.logger;
-var config = require('./config');
-var AgentHealthChecker = require("./healthcheck");
-var redis = require("redis");
-var lastMetricsInfo = {
+const mosca = require('mosca');
+const iotalib = require('@dojot/iotagent-nodejs');
+const dojotLogger = require("@dojot/dojot-module-logger");
+const logger = dojotLogger.logger;
+const config = require('./config');
+const AgentHealthChecker = require("./healthcheck");
+const redis = require("redis");
+const bodyParser = require("body-parser");
+const express = require("express");
+
+const lastMetricsInfo = {
   connectedClients: null,
   connectionsLoad1min: null,
   connectionsLoad5min: null,
@@ -18,7 +21,7 @@ var lastMetricsInfo = {
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
-var iota = new iotalib.IoTAgent();
+const iota = new iotalib.IoTAgent();
 iota.init().then(() => {
   const redisClient = redis.createClient(`redis://${config.backend_host}:${config.backend_port}`);
   const healthChecker = new AgentHealthChecker(iota.messenger, redisClient);
@@ -27,9 +30,8 @@ iota.init().then(() => {
 logger.debug("... IoT agent was initialized");
 
 logger.debug("Initializing configuration endpoints...");
-var bodyParser = require("body-parser");
-var express = require("express");
-var app = express();
+
+  const app = express();
 
 //service to get last metrics infos
 app.get('/iotagent-mqtt/metrics', (req, res) => {
@@ -59,53 +61,53 @@ logger.debug("... configuration endpoints were initialized");
 const cache = new Map();
 
 // Mosca Settings
-var moscaBackend = {
-  type: 'redis',
-  redis: redis,
-  db: 12,
-  port: config.backend_port,
-  return_buffers: true, // to handle binary payloads
-  host: config.backend_host
-};
+  const moscaBackend = {
+    type: 'redis',
+    redis: redis,
+    db: 12,
+    port: config.backend_port,
+    return_buffers: true, // to handle binary payloads
+    host: config.backend_host
+  };
 
-var moscaInterfaces = [];
+  const moscaInterfaces = [];
 
 // mandatory
-var mqtts = {
-  type: "mqtts",
-  port: 8883,
-  credentials:
-  {
-    keyPath: config.mosca_tls.key,
-    certPath: config.mosca_tls.cert,
-    caPaths: [config.mosca_tls.ca],
-    requestCert: true, // enable requesting certificate from clients
-    rejectUnauthorized: true // only accept clients with valid certificate
-  }
-};
-moscaInterfaces.push(mqtts);
+  const mqtts = {
+    type: "mqtts",
+    port: 8883,
+    credentials:
+        {
+          keyPath: config.mosca_tls.key,
+          certPath: config.mosca_tls.cert,
+          caPaths: [config.mosca_tls.ca],
+          requestCert: true, // enable requesting certificate from clients
+          rejectUnauthorized: true // only accept clients with valid certificate
+        }
+  };
+  moscaInterfaces.push(mqtts);
 
 // optional
 if (config.allow_unsecured_mode === 'true') {
-  var mqtt = {
+  const mqtt = {
     type: "mqtt",
     port: 1883
   };
   moscaInterfaces.push(mqtt);
 }
 
-var moscaSettings = {
-  backend: moscaBackend,
-  persistence: {
-    factory: mosca.persistence.Redis,
-    host: moscaBackend.host
-  },
-  interfaces: moscaInterfaces,
-  stats: true,
-  logger: { name: 'MoscaServer', level: 'info' }
-};
+  const moscaSettings = {
+    backend: moscaBackend,
+    persistence: {
+      factory: mosca.persistence.Redis,
+      host: moscaBackend.host
+    },
+    interfaces: moscaInterfaces,
+    stats: true,
+    logger: {name: 'MoscaServer', level: 'info'}
+  };
 
-var server = new mosca.Server(moscaSettings);
+  const server = new mosca.Server(moscaSettings);
 
 // Fired when mosca server is ready
 server.on('ready', () => {
@@ -136,7 +138,6 @@ function parseClientIdOrTopic(clientId, topic) {
     }
   }
 
-  return;
 }
 
 // Function to authenticate the MQTT client
@@ -167,7 +168,7 @@ function authenticate(client, username, password, callback) {
   // device identified in the clientId
   // TODO: the clientId must contain the tenant too!
   if (client.connection.stream.hasOwnProperty('TLSSocket')) {
-    clientCertificate = client.connection.stream.getPeerCertificate();
+    let clientCertificate = client.connection.stream.getPeerCertificate();
     if (!clientCertificate.hasOwnProperty('subject') ||
       !clientCertificate.subject.hasOwnProperty('CN') ||
       clientCertificate.subject.CN !== ids.device) {
