@@ -192,7 +192,8 @@ function authenticate(client, username, password, callback) {
   });
 }
 
-  async function checkDeviceExist(ids, cacheEntry, client, deviceExist) {
+  async function checkDeviceExist(ids, cacheEntry, client) {
+    let deviceExist = false;
     await iota.getDevice(ids.device, ids.tenant).then((device) => {
       logger.debug(`Got device ${JSON.stringify(device)}`);
       // add device to cache
@@ -233,7 +234,7 @@ async function authorizePublish(client, topic, payload, callback) {
   // (backward compatibility)
   if(cacheEntry.deviceId === null) {
     // Device exists in dojot
-    deviceExist = await checkDeviceExist(ids, cacheEntry, client, deviceExist);
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client);
 
   }
 
