@@ -200,11 +200,11 @@ function authenticate(client, username, password, callback) {
       cacheEntry.tenant = ids.tenant;
       cacheEntry.deviceId = ids.device;
       cache.set(client.id, cacheEntry);
-
+      deviceExist = true;
     }).catch((error) => {
       //reject
       logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      deviceExist = false;
+
     });
     return deviceExist;
   }
