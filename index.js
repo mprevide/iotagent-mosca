@@ -192,6 +192,22 @@ function authenticate(client, username, password, callback) {
   });
 }
 
+  async function checkDeviceExist(ids, cacheEntry, client, deviceExist) {
+    await iota.getDevice(ids.device, ids.tenant).then((device) => {
+      logger.debug(`Got device ${JSON.stringify(device)}`);
+      // add device to cache
+      cacheEntry.tenant = ids.tenant;
+      cacheEntry.deviceId = ids.device;
+      cache.set(client.id, cacheEntry);
+
+    }).catch((error) => {
+      //reject
+      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
+      deviceExist = false;
+    });
+    return deviceExist;
+  }
+
 // Function to authourize client to publish to
 // topic: {tenant}/{deviceId}/attrs
 async function authorizePublish(client, topic, payload, callback) {
@@ -217,18 +233,7 @@ async function authorizePublish(client, topic, payload, callback) {
   // (backward compatibility)
   if(cacheEntry.deviceId === null) {
     // Device exists in dojot
-    await iota.getDevice(ids.device, ids.tenant).then((device) => {
-      logger.debug(`Got device ${JSON.stringify(device)}`);
-      // add device to cache
-      cacheEntry.tenant = ids.tenant;
-      cacheEntry.deviceId = ids.device;
-      cache.set(client.id, cacheEntry);
-
-    }).catch((error) => {
-      //reject
-      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      deviceExist = false;
-    });
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client, deviceExist);
 
   }
 
@@ -269,11 +274,11 @@ async function authorizePublish(client, topic, payload, callback) {
 
 // Function to authorize client to subscribe to
 // topic: {tenant}/{deviceId}/config
-function authorizeSubscribe(client, topic, callback) {
+async function authorizeSubscribe(client, topic, callback) {
   logger.debug(`Authorizing client ${client.id} to subscribe to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
-  if(!cacheEntry) {
+  if (!cacheEntry) {
     // If this happens, there is something very wrong!!
     callback(null, false);
     logger.error(`Unexpected client ${client.id} trying to subscribe
@@ -290,30 +295,26 @@ function authorizeSubscribe(client, topic, callback) {
     return;
   }
 
+  let deviceExist = true;
   // (backward compatibility)
-  if(cacheEntry.deviceId === null) {
-
+  if (cacheEntry.deviceId === null) {
     // Device exists in dojot
-    iota.getDevice(ids.device, ids.tenant).then((device) => {
-      logger.debug(`Got device ${JSON.stringify(device)}`);
-      // add device to cache
-      cacheEntry.tenant = ids.tenant;
-      cacheEntry.deviceId = ids.device;
-      cache.set(client.id, cacheEntry);
-    }).catch((error) => {
-      //reject
-      callback(null, false);
-      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to subscribe to unknown
-      device ${ids.device}.`);
-
-    });
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client, deviceExist);
 
   }
 
+  //stop publish
+  if (!deviceExist) {
+    callback(null, false);
+    logger.debug(`Device ${ids.device} doest exist `);
+    logger.warn(`Client ${client.id} trying to subscribe to unknown
+      device ${ids.device}.`);
+    return;
+  }
+
   // a client is not allowed to subscribe on behalf of more than one device
-  if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
-    ids.device !== cacheEntry.deviceId) {
+  if (ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
+      ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
     logger.warn(`Client ${client.id} trying to subscribe on behalf of
