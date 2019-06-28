@@ -3,7 +3,7 @@ const mosca = require('mosca');
 const iotalib = require('@dojot/iotagent-nodejs');
 const dojotLogger = require("@dojot/dojot-module-logger");
 
-const { logger } = dojotLogger;
+const {logger} = dojotLogger;
 const redis = require("redis");
 const config = require('./config');
 const AgentHealthChecker = require("./healthcheck");
@@ -38,8 +38,8 @@ iota.init().then(() => {
         if (lastMetricsInfo) {
             return res.status(200).json(lastMetricsInfo);
         }
-            logger.debug(`Something unexpected happened`);
-            return res.status(500).json({ status: 'error', errors: [] });
+        logger.debug(`Something unexpected happened`);
+        return res.status(500).json({status: 'error', errors: []});
     });
 
     app.use(bodyParser.json());
@@ -103,29 +103,16 @@ iota.init().then(() => {
         },
         interfaces: moscaInterfaces,
         stats: true,
-        logger: { name: 'MoscaServer', level: 'info' },
+        logger: {name: 'MoscaServer', level: 'info'},
     };
 
-    const server = new mosca.Server(moscaSettings);
-
-// Fired when mosca server is ready
-    server.on('ready', () => {
-        logger.info('Mosca server is up and running');
-
-        // callbacks
-        server.authenticate = authenticate;
-
-        // Always check whether device is doing the right thing.
-        server.authorizePublish = authorizePublish;
-        server.authorizeSubscribe = authorizeSubscribe;
-    });
 
 // Helper Function to parse MQTT clientId
     function parseClientIdOrTopic(clientId, topic) {
         if (clientId && (typeof clientId === 'string')) {
             const parsedClientId = clientId.match(/^(\w+):(\w+)$/);
             if (parsedClientId) {
-                return { tenant: parsedClientId[1], device: parsedClientId[2] };
+                return {tenant: parsedClientId[1], device: parsedClientId[2]};
             }
         }
 
@@ -133,7 +120,7 @@ iota.init().then(() => {
         if (topic && (typeof topic === 'string')) {
             const parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
             if (parsedTopic) {
-                return ({ tenant: parsedTopic[1], device: parsedTopic[2] });
+                return ({tenant: parsedTopic[1], device: parsedTopic[2]});
             }
         }
     }
@@ -154,21 +141,21 @@ iota.init().then(() => {
             }
             //
 
-                // (backward compatibility)
-                // authorize
-                cache.set(client.id, { client, tenant: null, deviceId: null });
-                callback(null, true);
-                return;
+            // (backward compatibility)
+            // authorize
+            cache.set(client.id, {client, tenant: null, deviceId: null});
+            callback(null, true);
+            return;
         }
 
         // Condition 2: Client certificate belongs to the
         // device identified in the clientId
         // TODO: the clientId must contain the tenant too!
         if (client.connection.stream.hasOwnProperty('TLSSocket')) {
-            clientCertificate = client.connection.stream.getPeerCertificate();
-            if (!clientCertificate.hasOwnProperty('subject')
-                || !clientCertificate.subject.hasOwnProperty('CN')
-                || clientCertificate.subject.CN !== ids.device) {
+            let clientCertificate = client.connection.stream.getPeerCertificate();
+            if (!clientCertificate.hasOwnProperty('subject') ||
+                !clientCertificate.subject.hasOwnProperty('CN') ||
+                clientCertificate.subject.CN !== ids.device) {
                 // reject client connection
                 callback(null, false);
                 logger.warn(`Connection rejected for ${client.id}. Invalid client certificate.`);
@@ -177,13 +164,13 @@ iota.init().then(() => {
         }
 
         // Condition 3: Device exists in dojot
-        iota.getDevice(ids.device, ids.tenant).then((device) => {
+        iota.getDevice(ids.device, ids.tenant).then(() => {
             // add device to cache
-            cache.set(client.id, { client, tenant: ids.tenant, deviceId: ids.device });
+            cache.set(client.id, {client, tenant: ids.tenant, deviceId: ids.device});
             // authorize client connection
             callback(null, true);
             logger.debug('Connection authorized for', client.id);
-        }).catch((error) => {
+        }).catch(() => {
             // reject client connection
             callback(null, false);
             logger.warn(`Connection rejected for ${client.id}. Device doesn't exist in dojot.`);
@@ -331,6 +318,21 @@ iota.init().then(() => {
         logger.warn(`Rejected client ${client.id} to subscribe to topic ${topic}`);
     }
 
+    const server = new mosca.Server(moscaSettings);
+
+// Fired when mosca server is ready
+    server.on('ready', () => {
+        logger.info('Mosca server is up and running');
+
+        // callbacks
+        server.authenticate = authenticate;
+
+        // Always check whether device is doing the right thing.
+        server.authorizePublish = authorizePublish;
+        server.authorizeSubscribe = authorizeSubscribe;
+    });
+
+
 // Fired when a client connects to mosca server
     server.on('clientConnected', (client) => {
         logger.info('client up', client.id);
@@ -361,7 +363,7 @@ iota.init().then(() => {
         function setMetadata(data) {
             let metadata = {};
             if ("timestamp" in data) {
-                metadata = { timestamp: 0 };
+                metadata = {timestamp: 0};
                 // If it is a number, just copy it. Probably Unix time.
                 if (typeof data.timestamp === "number") {
                     if (!isNaN(data.timestamp)) {
@@ -435,6 +437,8 @@ iota.init().then(() => {
                         }
                     }
                     break;
+                default:
+                // do nothing
             }
 
             return;
