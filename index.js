@@ -104,7 +104,7 @@ iota.init().then(() => {
         },
         interfaces: moscaInterfaces,
         stats: true,
-        logger: {name: 'MoscaServer', level: 'info'}
+        logger: {name: 'MoscaServer', level: 'info'},
     };
 
     const server = new mosca.Server(moscaSettings);
@@ -132,7 +132,7 @@ iota.init().then(() => {
 
         // fallback to topic-based id scheme
         if (topic && (typeof topic === 'string')) {
-            let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
+            const parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
             if (parsedTopic) {
                 return ({tenant: parsedTopic[1], device: parsedTopic[2]});
             }
@@ -168,7 +168,7 @@ iota.init().then(() => {
         // device identified in the clientId
         // TODO: the clientId must contain the tenant too!
         if (client.connection.stream.hasOwnProperty('TLSSocket')) {
-            let clientCertificate = client.connection.stream.getPeerCertificate();
+            const clientCertificate = client.connection.stream.getPeerCertificate();
             if (!clientCertificate.hasOwnProperty('subject') ||
                 !clientCertificate.subject.hasOwnProperty('CN') ||
                 clientCertificate.subject.CN !== ids.device) {
