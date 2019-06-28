@@ -300,7 +300,7 @@ async function authorizeSubscribe(client, topic, callback) {
   // (backward compatibility)
   if (cacheEntry.deviceId === null) {
     // Device exists in dojot
-    deviceExist = await checkDeviceExist(ids, cacheEntry, client, deviceExist);
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client);
 
   }
 
