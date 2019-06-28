@@ -1,15 +1,12 @@
 #!/usr/bin/node
-const mosca = require('mosca');
-const iotalib = require('@dojot/iotagent-nodejs');
-const dojotLogger = require("@dojot/dojot-module-logger");
-const logger = dojotLogger.logger;
-const config = require('./config');
-const AgentHealthChecker = require("./healthcheck");
-const redis = require("redis");
-const bodyParser = require("body-parser");
-const express = require("express");
-
-const lastMetricsInfo = {
+var mosca = require('mosca');
+var iotalib = require('@dojot/iotagent-nodejs');
+var dojotLogger = require("@dojot/dojot-module-logger");
+var logger = dojotLogger.logger;
+var config = require('./config');
+var AgentHealthChecker = require("./healthcheck");
+var redis = require("redis");
+var lastMetricsInfo = {
     connectedClients: null,
     connectionsLoad1min: null,
     connectionsLoad5min: null,
@@ -21,7 +18,7 @@ const lastMetricsInfo = {
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
-const iota = new iotalib.IoTAgent();
+var iota = new iotalib.IoTAgent();
 iota.init().then(() => {
     const redisClient = redis.createClient(`redis://${config.backend_host}:${config.backend_port}`);
     const healthChecker = new AgentHealthChecker(iota.messenger, redisClient);
@@ -30,8 +27,9 @@ iota.init().then(() => {
     logger.debug("... IoT agent was initialized");
 
     logger.debug("Initializing configuration endpoints...");
-
-    const app = express();
+    var bodyParser = require("body-parser");
+    var express = require("express");
+    var app = express();
 
 //service to get last metrics infos
     app.get('/iotagent-mqtt/metrics', (req, res) => {
@@ -61,7 +59,7 @@ iota.init().then(() => {
     const cache = new Map();
 
 // Mosca Settings
-    const moscaBackend = {
+    var moscaBackend = {
         type: 'redis',
         redis: redis,
         db: 12,
@@ -70,10 +68,10 @@ iota.init().then(() => {
         host: config.backend_host
     };
 
-    const moscaInterfaces = [];
+    var moscaInterfaces = [];
 
 // mandatory
-    const mqtts = {
+    var mqtts = {
         type: "mqtts",
         port: 8883,
         credentials:
@@ -89,14 +87,14 @@ iota.init().then(() => {
 
 // optional
     if (config.allow_unsecured_mode === 'true') {
-        const mqtt = {
+        var mqtt = {
             type: "mqtt",
             port: 1883
         };
         moscaInterfaces.push(mqtt);
     }
 
-    const moscaSettings = {
+    var moscaSettings = {
         backend: moscaBackend,
         persistence: {
             factory: mosca.persistence.Redis,
@@ -104,10 +102,10 @@ iota.init().then(() => {
         },
         interfaces: moscaInterfaces,
         stats: true,
-        logger: {name: 'MoscaServer', level: 'info'},
+        logger: {name: 'MoscaServer', level: 'info'}
     };
 
-    const server = new mosca.Server(moscaSettings);
+    var server = new mosca.Server(moscaSettings);
 
 // Fired when mosca server is ready
     server.on('ready', () => {
@@ -132,12 +130,13 @@ iota.init().then(() => {
 
         // fallback to topic-based id scheme
         if (topic && (typeof topic === 'string')) {
-            const parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
+            let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
             if (parsedTopic) {
                 return ({tenant: parsedTopic[1], device: parsedTopic[2]});
             }
         }
 
+        return;
     }
 
 // Function to authenticate the MQTT client
@@ -168,7 +167,7 @@ iota.init().then(() => {
         // device identified in the clientId
         // TODO: the clientId must contain the tenant too!
         if (client.connection.stream.hasOwnProperty('TLSSocket')) {
-            const clientCertificate = client.connection.stream.getPeerCertificate();
+            clientCertificate = client.connection.stream.getPeerCertificate();
             if (!clientCertificate.hasOwnProperty('subject') ||
                 !clientCertificate.subject.hasOwnProperty('CN') ||
                 clientCertificate.subject.CN !== ids.device) {
@@ -447,7 +446,10 @@ iota.init().then(() => {
 
             return;
         }
-
+        if ((client === undefined) || (client === null)) {
+            logger.debug('ignoring internal message', packet.topic, client);
+            return;
+        }
         // handle packet
         let data;
         try {
