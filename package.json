@@ -5,6 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
+    "lint": "eslint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Matheus Magalhaes",
@@ -13,8 +14,14 @@
     "@dojot/dojot-module-logger": "0.0.1-alpha.4",
     "@dojot/healthcheck": "^0.0.1-alpha",
     "@dojot/iotagent-nodejs": "^2.1.0-beta",
-    "express": "4.16.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
     "mosca": "^2.8.0",
     "redis": "^2.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.18.0"
   }
 }
