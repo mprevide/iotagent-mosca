@@ -16,6 +16,9 @@ var lastMetricsInfo = {
   messagesLoad15min: null
 };
 
+var logLevel = config.log_level;
+logger.setLevel(logLevel);
+
 // Base iot-agent
     logger.info("Initializing IoT agent...");
 var iota = new iotalib.IoTAgent();
@@ -102,7 +105,7 @@ var moscaSettings = {
   },
   interfaces: moscaInterfaces,
   stats: true,
-  logger: { name: 'MoscaServer', level: 'info' }
+  logger: { name: 'MoscaServer', level: logLevel }
 };
 
 var server = new mosca.Server(moscaSettings);
