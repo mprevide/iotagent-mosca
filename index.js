@@ -144,7 +144,7 @@ function parseClientIdOrTopic(clientId, topic) {
 
 // Function to authenticate the MQTT client
 function authenticate(client, username, password, callback) {
-  logger.info('Authenticating MQTT client', client.id);
+  logger.debug('Authenticating MQTT client', client.id);
 
   // Condition 1: client.id follows the pattern tenant:deviceId
   // Get tenant and deviceId from client.id
@@ -198,7 +198,7 @@ function authenticate(client, username, password, callback) {
   async function checkDeviceExist(ids, cacheEntry, client) {
     let deviceExist = false;
     await iota.getDevice(ids.device, ids.tenant).then((device) => {
-      logger.info(`Got device ${JSON.stringify(device)}`);
+      logger.debug(`Got device ${JSON.stringify(device)}`);
       // add device to cache
       cacheEntry.tenant = ids.tenant;
       cacheEntry.deviceId = ids.device;
@@ -215,7 +215,7 @@ function authenticate(client, username, password, callback) {
 // Function to authourize client to publish to
 // topic: {tenant}/{deviceId}/attrs
 async function authorizePublish(client, topic, payload, callback) {
-  logger.info(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
+  logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
 
@@ -263,8 +263,8 @@ async function authorizePublish(client, topic, payload, callback) {
 
   let expectedTopic = `/${ids.tenant}/${ids.device}/attrs`;
 
-  logger.info(`Expected topic is ${expectedTopic}`);
-  logger.info(`Device published on topic ${topic}`);
+  logger.debug(`Expected topic is ${expectedTopic}`);
+  logger.debug(`Device published on topic ${topic}`);
   if (topic === expectedTopic) {
     // authorize
     callback(null, true);
@@ -364,7 +364,6 @@ server.on('published', function (packet, client) {
 
   function preparePayloadObject(payloadObject, payloadTopic, payloadValue) {
     payloadObject[`${payloadTopic}`] = `${payloadValue}`;
-    // logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`);
   }
 
 
@@ -470,7 +469,7 @@ server.on('published', function (packet, client) {
     return;
   }
 
-  logger.info(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
+  logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
   let metadata = setMetadata(data);
 
@@ -482,7 +481,7 @@ server.on('published', function (packet, client) {
 // Fired when a device.configure event is received
 // (from dojot to device)
 iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
-  logger.info('Got configure event from Device Manager', event);
+  logger.debug('Got configure event from Device Manager', event);
   // device id
   let deviceId = event.data.id;
   delete event.data.id;
@@ -502,8 +501,8 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   };
 
   // send data to device
-  logger.info('Publishing', message);
-  server.publish(message, () => { logger.info('Message out!!');});
+  logger.debug('Publishing', message);
+  server.publish(message, () => { logger.debug('Message out!!');});
 
 });
 
@@ -541,7 +540,7 @@ const disconnectCachedDevice = (event) => {
 
 // // Fired when a device.remove event is received
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
-  logger.info('Got device.remove event from Device Manager', tenant);
+  logger.debug('Got device.remove event from Device Manager', tenant);
   disconnectCachedDevice(event);
 });
 
