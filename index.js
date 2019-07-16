@@ -16,7 +16,7 @@ var lastMetricsInfo = {
   messagesLoad15min: null
 };
 
-var logLevel = config.log_level;
+var logLevel = config.logger.level;
 logger.setLevel(logLevel);
 
 // Base iot-agent
