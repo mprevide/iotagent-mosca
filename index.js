@@ -16,8 +16,13 @@ var lastMetricsInfo = {
   messagesLoad15min: null
 };
 
-var logLevel = config.log_level;
+var logLevel = config.logger.level;
 logger.setLevel(logLevel);
+
+process.on('unhandledRejection', (reason) => {
+    logger.error(`Unhandled Rejection at: ${reason.stack || reason}. Bailing out!!`);
+    process.kill(process.pid, "SIGTERM");
+});
 
 // Base iot-agent
     logger.info("Initializing IoT agent...");
