@@ -7,7 +7,9 @@ config.backend_port = process.env.BACKEND_PORT || 6379;
 
 config.allow_unsecured_mode = process.env.ALLOW_UNSECURED_MODE || 'false';
 
-config.log_level = process.env.LOG_LEVEL || 'info';
+config.logger = {
+    level: process.env.LOG_LEVEL || 'info'
+};
 
 config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || '/opt/iot-agent/mosca/certs/mosca.crt',
