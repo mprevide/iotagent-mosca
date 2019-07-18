@@ -25,16 +25,16 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // Base iot-agent
-logger.debug("Initializing IoT agent...");
+    logger.info("Initializing IoT agent...");
 var iota = new iotalib.IoTAgent();
 iota.init().then(() => {
   const redisClient = redis.createClient(`redis://${config.backend_host}:${config.backend_port}`);
   const healthChecker = new AgentHealthChecker(iota.messenger, redisClient);
   healthChecker.init();
 
-logger.debug("... IoT agent was initialized");
+logger.info("... IoT agent was initialized");
 
-logger.debug("Initializing configuration endpoints...");
+logger.info("Initializing configuration endpoints...");
 var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
@@ -55,7 +55,7 @@ app.use(dojotLogger.getHTTPRouter());
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
-logger.debug("... configuration endpoints were initialized");
+logger.info("... configuration endpoints were initialized");
 
 // Local device cache
 // Keeps the device associated with a MQTT client
@@ -158,7 +158,7 @@ function authenticate(client, username, password, callback) {
     if (client.connection.stream.hasOwnProperty('TLSSocket')) {
       //reject client connection
       callback(null, false);
-      logger.warn(`Connection rejected due to invalid ${client.id}.`);
+      logger.debug(`Connection rejected due to invalid ${client.id}.`);
       return;
     }
     //
@@ -181,7 +181,7 @@ function authenticate(client, username, password, callback) {
       clientCertificate.subject.CN !== ids.device) {
       //reject client connection
       callback(null, false);
-      logger.warn(`Connection rejected for ${client.id}. Invalid client certificate.`);
+      logger.debug(`Connection rejected for ${client.id}. Invalid client certificate.`);
       return;
     }
   }
@@ -196,7 +196,7 @@ function authenticate(client, username, password, callback) {
   }).catch((error) => {
     //reject client connection
     callback(null, false);
-    logger.warn(`Connection rejected for ${client.id}. Device doesn't exist in dojot.`);
+    logger.debug(`Connection rejected for ${client.id}. Device doesn't exist in dojot.`);
   });
 }
 
@@ -223,17 +223,18 @@ async function authorizePublish(client, topic, payload, callback) {
   logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
+
   if(!cacheEntry) {
     // If this happens, there is something very wrong!!
     callback(null, false);
-    logger.error(`Unexpected client ${client.id} trying to publish to topic ${topic}`);
+    logger.debug(`Unexpected client ${client.id} trying to publish to topic ${topic}`);
     return;
   }
 
   let ids = parseClientIdOrTopic(client.id, topic);
   if (!ids) {
     callback(null, false);
-    logger.warn(`Client ${client.id} trying to publish to unexpected topic ${topic}`);
+    logger.debug(`Client ${client.id} trying to publish to unexpected topic ${topic}`);
     return;
   }
 
@@ -250,7 +251,7 @@ async function authorizePublish(client, topic, payload, callback) {
   if (!deviceExist) {
     callback(null, false);
     logger.debug(`Device ${ids.device} doest exist `);
-    logger.warn(`Client ${client.id} trying to publish on behalf of
+    logger.debug(`Client ${client.id} trying to publish on behalf of
     devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
@@ -260,7 +261,7 @@ async function authorizePublish(client, topic, payload, callback) {
     ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} trying to publish on behalf of
+    logger.debug(`Client ${client.id} trying to publish on behalf of
     devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
@@ -290,7 +291,7 @@ async function authorizeSubscribe(client, topic, callback) {
   if (!cacheEntry) {
     // If this happens, there is something very wrong!!
     callback(null, false);
-    logger.error(`Unexpected client ${client.id} trying to subscribe
+    logger.debug(`Unexpected client ${client.id} trying to subscribe
     to topic ${topic}`);
     return;
   }
@@ -299,7 +300,7 @@ async function authorizeSubscribe(client, topic, callback) {
   if (!ids) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} is trying to subscribe to
+    logger.debug(`Client ${client.id} is trying to subscribe to
     unexpected topic ${topic}`);
     return;
   }
@@ -316,7 +317,7 @@ async function authorizeSubscribe(client, topic, callback) {
   if (!deviceExist) {
     callback(null, false);
     logger.debug(`Device ${ids.device} doest exist `);
-    logger.warn(`Client ${client.id} trying to subscribe to unknown
+    logger.debug(`Client ${client.id} trying to subscribe to unknown
       device ${ids.device}.`);
     return;
   }
@@ -326,7 +327,7 @@ async function authorizeSubscribe(client, topic, callback) {
       ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
-    logger.warn(`Client ${client.id} trying to subscribe on behalf of
+    logger.debug(`Client ${client.id} trying to subscribe on behalf of
     devices: ${ids.device} and ${cacheEntry.deviceId}.`);
     return;
   }
@@ -336,13 +337,13 @@ async function authorizeSubscribe(client, topic, callback) {
   if (topic === expectedTopic) {
     // authorize
     callback(null, true);
-    logger.debug(`Authorized client ${client.id} to subscribe to topic ${topic}`);
+    logger.info(`Authorized client ${client.id} to subscribe to topic ${topic}`);
     return;
   }
 
   //reject
   callback(null, false);
-  logger.warn(`Rejected client ${client.id} to subscribe to topic ${topic}`);
+  logger.debug(`Rejected client ${client.id} to subscribe to topic ${topic}`);
 }
 
 // Fired when a client connects to mosca server
@@ -368,7 +369,6 @@ server.on('published', function (packet, client) {
 
   function preparePayloadObject(payloadObject, payloadTopic, payloadValue) {
     payloadObject[`${payloadTopic}`] = `${payloadValue}`;
-    logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`);
   }
 
 
