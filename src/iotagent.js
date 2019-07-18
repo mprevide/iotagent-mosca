@@ -1,6 +1,7 @@
 var Agent = require('@dojot/iotagent-nodejs').IoTAgent;
 var logger = require("@dojot/dojot-module-logger").logger;
 const MqttBackend = require("./mosca").MqttBackend;
+const Metrics = require("./metrics").Metrics;
 const util = require("util");
 const TAG = { filename: "iotagent"};
 
@@ -29,7 +30,9 @@ class IoTAgent {
       monitor: undefined,
     };
 
+    this.metricsStore = new Metrics();
     this._registerCallbacks();
+
   }
 
   initHealthCheck(healthChecker) {
@@ -99,21 +102,91 @@ class IoTAgent {
   /**
    * Register all callbacks associated to this agent.
    *
-   * This includes not only dojot callbacks (by calling agent.on() functions)
    * but also mqttBackend callbacks.
    */
   _registerCallbacks() {
     const boundProcessDeviceRemoval = this._processDeviceRemoval.bind(this);
     const boundProcessDeviceActuation = this._processDeviceActuation.bind(this);
     const boundProcessMessage = this._processMessage.bind(this);
+    const boundProcessInternalMessage = this._processInternalMessage.bind(this);
     this.agent.on('iotagent.device', 'device.remove', boundProcessDeviceRemoval);
     this.agent.on('iotagent.device', 'device.configure', boundProcessDeviceActuation);
     this.mqttBackend.onMessage(boundProcessMessage);
+    this.mqttBackend.onInternalMessage(boundProcessInternalMessage);
   }
 
   _processMessage(tenant, deviceId, data) {
     logger.debug(`Received a message via MQTT`, TAG);
-    //TODO: support only ISO string???
+    let metadata = this._generateMetadata(data);
+
+    logger.debug(`Updating device attributes in dojot...`, TAG);
+    this.agent.updateAttrs(deviceId, tenant, data, metadata);
+    logger.debug(`... attribute update message was succesfully sent.`, TAG);
+
+    this.messageMonitor.value += 1;
+    this.messageMonitor.monitor.trigger(this.messageMonitor.value);
+  }
+
+  getTopicParameter(topic, index) {
+    return topic.split('/')[index];
+  }
+
+  _processInternalMessage(packetTopic, packetPayload) {
+    const topic = this.getTopicParameter(packetTopic, 2);
+    const topicMetrics = this.getTopicParameter(packetTopic, 3);
+    const topicConnectionsInterval = this.getTopicParameter(packetTopic, 4);
+    const topicMessagesInterval = this.getTopicParameter(packetTopic, 5);
+    const payload = packetPayload.toString();
+
+    switch (topic) {
+      case 'clients':
+        if(topicMetrics === 'connected') {
+          this.metricsStore.preparePayloadObject('connectedClients', payload);
+        }
+        break;
+
+      case 'load':
+        if(topicMetrics === 'connections') {
+          switch (topicConnectionsInterval) {
+            case '1min':
+              this.metricsStore.preparePayloadObject('connectionsLoad1min', payload);
+              break;
+
+            case '5min':
+              this.metricsStore.preparePayloadObject('connectionsLoad5min', payload);
+              break;
+
+            default:
+              this.metricsStore.preparePayloadObject('connectionsLoad15min', payload);
+            break;
+          }
+        }
+
+        if(topicMetrics === 'publish') {
+          switch (topicMessagesInterval) {
+            case '1min':
+              this.metricsStore.preparePayloadObject('messagesLoad1min', payload);
+              break;
+
+            case '5min':
+              this.metricsStore.preparePayloadObject('messagesLoad5min', payload);
+              break;
+
+            default:
+              this.metricsStore.preparePayloadObject('messagesLoad15min', payload);
+              break;
+          }
+        }
+        break;
+        default:
+          // do nothing.
+    }
+
+    return;
+  }
+
+  //TODO: support only ISO string???
+  _generateMetadata (data) {
     logger.debug(`Generating metadata...`, TAG);
     let metadata = {};
     if ("timestamp" in data) {
@@ -124,7 +197,7 @@ class IoTAgent {
           metadata.timestamp = data.timestamp;
         }
         else {
-          logger.warn("Received an invalid timestamp (NaN)", TAG);
+          logger.warn("Received an invalid timestamp (NaN)");
           metadata = {};
         }
       }
@@ -140,15 +213,10 @@ class IoTAgent {
         }
       }
     }
+
     logger.debug(`... metadata successfully generated.`, TAG);
     logger.debug(`Metadata is: ${util.inspect(metadata)}`, TAG);
-
-    logger.debug(`Updating device attributes in dojot...`, TAG);
-    this.agent.updateAttrs(deviceId, tenant, data, metadata);
-    logger.debug(`... attribute update message was succesfully sent.`, TAG);
-
-    this.messageMonitor.value += 1;
-    this.messageMonitor.monitor.trigger(this.messageMonitor.value);
+    return metadata;
   }
 }
 

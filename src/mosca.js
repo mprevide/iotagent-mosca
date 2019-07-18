@@ -62,6 +62,7 @@ class MqttBackend {
     const boundSetMoscaCallbacks = this._setMoscaCallbacks.bind(this);
     this.server.on("ready", boundSetMoscaCallbacks);
     this.agentCallback = undefined;
+    this.agentCallbackInternal = undefined;
   }
 
   /**
@@ -78,6 +79,21 @@ class MqttBackend {
    */
   onMessage(callback) {
     this.agentCallback = callback;
+  }
+
+  /**
+   * Set a callback to be invoked when an internal message is received via MQTT.
+   *
+   * It should have at least two parameters:
+   *
+   * - {string} topic: The topic by which the message was received
+   * - {string} payload: The message payload
+   *
+   * @param {function} callback The callback to be invoked whenever a new
+   * internal message is received via Mosca server
+   */
+  onInternalMessage(callback) {
+    this.agentCallbackInternal = callback;
   }
 
   /**
@@ -115,6 +131,17 @@ class MqttBackend {
   }
 
   /**
+   * Helper function to retrieve parameters from topic tokens.
+   *
+   * This topic will be split into tokens separated by forward slashes (`/`)
+   * @param {string} topic The topic to be split
+   * @param {numbr} index The token index
+   */
+  _getTopicParameter(topic, index) {
+    return topic.split('/')[index];
+  }
+
+  /**
    * Callback to process received messages
    *
    * This should be used only by setting it as callback for "published" event
@@ -124,14 +151,19 @@ class MqttBackend {
    */
   _processMessage(packet, client) {
     logger.debug(`Received a message via MQTT.`, TAG);
-    if (!this.agentCallback) {
+    if (!this.agentCallback || !this.agentCallbackInternal) {
       logger.error(`There is no callback to invoke. This is an unrecoverable error.`, TAG);
       logger.error(`Bailing out.`, TAG);
       return;
     }
-    if ((packet.topic.split('/')[0] == '$SYS') ||
-      (client === undefined) || (client === null)) {
-      logger.debug(`Received an internal message. Ignoring it.`, TAG);
+
+    const topicType = packet.topic.split('/')[0];
+      // publish metrics topics
+    if (topicType === '$SYS') {
+      this.agentCallbackInternal(packet.topic, packet.payload);
+      return;
+    } else if ((client === undefined) || (client === null)) {
+      logger.debug(`No MQTT client was created. Bailing out.`, TAG);
       return;
     }
 
