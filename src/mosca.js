@@ -44,7 +44,8 @@ class MqttBackend {
         db: 12,
         port: config.backend_port,
         return_buffers: true, // to handle binary payloads
-        host: config.backend_host
+        host: config.backend_host,
+        stats: true
       },
       persistence: {
         factory: mosca.persistence.Redis,
