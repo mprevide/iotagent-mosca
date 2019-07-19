@@ -2,7 +2,11 @@ var logger = require("@dojot/dojot-module-logger").logger;
 const IoTAgent = require("./iotagent").IoTAgent;
 const AgentHealthChecker = require("./healthcheck").AgentHealthChecker;
 const app = require("./app");
+const config = require("./config");
 const TAG = { filename: "main" };
+
+var logLevel = config.logger.level;
+logger.setLevel(logLevel);
 
 try {
   logger.info(`Starting IoT agent MQTT...`, TAG);
