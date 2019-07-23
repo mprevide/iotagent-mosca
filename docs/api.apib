@@ -1,0 +1,44 @@
+FORMAT: 1A
+
+# IoT agent mosca Metrics
+A iotagent metric is status information or configuration provided by the agent.
+
+## Group Metrics
+
+## Get all the metrics [GET /iotagent-mqtt/metrics]
+Return the available metrics for the agent.
+
++ Request (application/json; charset=utf-8)
+    + Headers
+
+            Authorization: Bearer JWT
+
++ Response 200 (application/json; charset=utf-8)
+    + Body
+
+            {
+                "connectedClients": "1",
+                "connectionsLoad1min": "0.13",
+                "connectionsLoad5min": "0.03",
+                "connectionsLoad15min": "0.01",
+                "messagesLoad1min": "0",
+                "messagesLoad5min": "0",
+                "messagesLoad15min": "0"
+            }
+
++ Response 401 (application/json; charset=utf-8)
+    Raised when no jwt token is provided.
+    + Body
+
+            {
+                "message": "Unauthorized"
+            }
+
++ Response 500 (application/json; charset=utf-8)
+    Raised when an internal error is flag
+    + Body
+    
+            {
+                "status": 'error',
+                "errors": [ ... ]
+            }

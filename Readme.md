@@ -106,3 +106,6 @@ This example uses mosquitto_pub tool, available with mosquitto_clients package. 
 * -i : id to use for the client. Defaults to mosquitto_pub_ appended with the process id.
 * -t : mqtt topic to publish to.
 * -m : message payload to send.
+
+## API Documentation
+URL to api documentation https://dojot.github.io/iotagent-mosca/apiary_development.html && https://dojot.github.io/iotagent-mosca/apiary_latest.html for development and latest version of this IoT agent. 
