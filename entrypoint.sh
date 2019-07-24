@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Generating keys and certificates for TLS ..."
-./initialConf.py && echo "TLS configured." || { echo "Error on TLS setup"; exit 1; }
+python initialConf.py && echo "TLS configured." || { echo "Error on TLS setup"; exit 1; }
 
 if [ "${ALLOW_UNSECURED_MODE}" = "true" ]; then
     echo "MQTT and MQTTS are enabled."

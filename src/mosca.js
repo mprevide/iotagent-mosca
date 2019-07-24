@@ -5,6 +5,7 @@ const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
 
 const TAG = { filename: "mqtt-backend"};
+const logLevel = config.logger.level;
 
 /**
  * Class responsible for MQTT backend operations.
@@ -29,7 +30,7 @@ class MqttBackend {
     moscaInterfaces.push(mqtts);
 
     // optional
-    if (config.allow_unsecured_mode === "true") {
+    if (config.allow_unsecured_mode === 'true') {
       var mqtt = {
         type: "mqtt",
         port: 1883
@@ -44,15 +45,15 @@ class MqttBackend {
         db: 12,
         port: config.backend_port,
         return_buffers: true, // to handle binary payloads
-        host: config.backend_host,
-        stats: true
+        host: config.backend_host
       },
       persistence: {
         factory: mosca.persistence.Redis,
         host: config.backend_host
       },
       interfaces: moscaInterfaces,
-      logger: { name: "MoscaServer", level: "info" }
+      logger: { name: "MoscaServer", level: logLevel },
+      stats: true
     };
 
     this.cache = new Map();

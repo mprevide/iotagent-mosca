@@ -21,8 +21,8 @@ function initApp(healthChecker, metricStore) {
 
     logger.debug("Initializing configuration endpoints...", TAG);
 
-    httpServer = app.listen(10011, () => {
-        logger.info(`Listening on port 10011.`, TAG);
+    httpServer = app.listen(10001, () => {
+        logger.info(`Listening on port 10001.`, TAG);
         isInitialized = true;
     });
     logger.debug("... configuration endpoints were initialized", TAG);

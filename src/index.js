@@ -18,7 +18,7 @@ try {
   logger.info(`... health checker started`);
 
   logger.info(`Initializing endpoints...`, TAG);
-  app.initApp(healthChecker.healthChecker);
+  app.initApp(healthChecker.healthChecker, agent.metricsStore);
   logger.info(`... app initialized.`, TAG);
 
 } catch (error) {
