@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest tests/unit-tests/*.test.js",
     "start": "node src/index.js"
   },
   "repository": {
@@ -30,5 +30,8 @@
     "express": "4.16.3",
     "mosca": "^2.8.0",
     "redis": "^2.8.0"
+  },
+  "devDependencies": {
+    "jest": "^24.8.0"
   }
 }
