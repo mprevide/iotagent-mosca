@@ -11,5 +11,6 @@ kafkaHost = os.environ.get("MQTTREST_KAFKA_HOST", "kafka:9092")
 
 subjectAltNameDnsList = os.environ.get("MOSCA_TLS_DNS_LIST", "mqtt,mosca,localhost").split(',')
 
-ACLfilePath = "/opt/iot-agent/mosca/certs/access.acl"
-certsDir = "/opt/iot-agent/mosca/certs/"
+ACLfilePath = "./mosca/certs/access.acl"
+certsDir = "./mosca/certs/"
+

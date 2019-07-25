@@ -51,15 +51,15 @@ def generateCSR(CName, privateKeyFile, csrFileName, dnsname=None, ipaddr=None):
     # Add in extensions
     base_constraints = ([
         crypto.X509Extension(
-                    "keyUsage",
+                    b"keyUsage",
                     False,
-                    "Digital Signature, Non Repudiation, Key Encipherment"),
-        crypto.X509Extension("basicConstraints", False, "CA:FALSE"),
+                    b"Digital Signature, Non Repudiation, Key Encipherment"),
+        crypto.X509Extension(b"basicConstraints", False, b"CA:FALSE"),
     ])
     x509_extensions = base_constraints
 
     if ss:
-        san_constraint = crypto.X509Extension("subjectAltName", False, ss)
+        san_constraint = crypto.X509Extension(b"subjectAltName", False, ss.encode("utf-8"))
         x509_extensions.append(san_constraint)
 
     req.add_extensions(x509_extensions)
@@ -72,7 +72,7 @@ def generateCSR(CName, privateKeyFile, csrFileName, dnsname=None, ipaddr=None):
 
     with open(csrFileName, "w") as csrFile:
         csrFile.write(
-            crypto.dump_certificate_request(crypto.FILETYPE_PEM, req))
+            crypto.dump_certificate_request(crypto.FILETYPE_PEM, req).decode("utf-8"))
 
 
 def generatePrivateKey(keyFile, bitLen):
@@ -80,7 +80,7 @@ def generatePrivateKey(keyFile, bitLen):
     key.generate_key(crypto.TYPE_RSA, bitLen)
     key_file = None
     with open(keyFile, "w") as key_file:
-        key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+        key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode("utf-8"))
 
 
 # default header for HTTP requests
@@ -119,7 +119,7 @@ def createEJBCAUser(EJBCA_API_URL, CAName, CName, passwd,
         "clearPwd": True,
         "endEntityProfileName": endEntityProfileName,
         "keyRecoverable": False,
-        "password": passwd,
+        "password": passwd.decode("utf-8"),
         "sendNotification": False,
         "status": 10,
         "subjectDN": "CN=" + CName,
@@ -145,7 +145,7 @@ def signCert(EJBCA_API_URL, csrFile, CName, passwd):
                   .replace("\n", ""))
 
     req = json.dumps({
-        "passwd": passwd,
+        "passwd": passwd.decode("utf-8"),
         "certificate": cutDownCLR
     })
 
