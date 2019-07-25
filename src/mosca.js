@@ -248,7 +248,7 @@ class MqttBackend {
    * @param {function} callback The callback to be executed when the decision is
    * made.
    */
-  async authenticate(client, username, password, callback) {
+  authenticate(client, username, password, callback) {
     logger.debug(`Authenticating MQTT client: ${client.id}`, TAG);
 
     // Condition 1: client.id follows the pattern tenant:deviceId
@@ -297,7 +297,7 @@ class MqttBackend {
 
     // Condition 3: Device exists in dojot
     logger.debug(`Checking whether this device exists in dojot...`, TAG);
-    await this.agent
+    this.agent
       .getDevice(ids.device, ids.tenant)
       .then(() => {
         // add device to cache
