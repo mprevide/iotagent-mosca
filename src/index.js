@@ -9,6 +9,14 @@ var logLevel = config.logger.level;
 logger.setLevel(logLevel);
 
 try {
+
+  if(config.allow_unsecured_mode === true){
+    logger.info("MQTT and MQTTS are enabled.", TAG);
+  }
+  else{
+    logger.info("Only MQTTS is enabled.", TAG);
+  }
+
   logger.info(`Starting IoT agent MQTT...`, TAG);
   const agent = new IoTAgent();
   logger.info(`... IoT agent MQTT initialization started.`, TAG);
