@@ -13,4 +13,3 @@ subjectAltNameDnsList = os.environ.get("MOSCA_TLS_DNS_LIST", "mqtt,mosca,localho
 
 ACLfilePath = "./mosca/certs/access.acl"
 certsDir = "./mosca/certs/"
-
