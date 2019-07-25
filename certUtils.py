@@ -32,7 +32,6 @@ def saveCRT(filename, rawCRT):
 def generateCSR(CName, privateKeyFile, csrFileName, dnsname=None, ipaddr=None):
     # based on https://github.com/cjcotton/python-csr
 
-
     if dnsname is None:
         dnsname = []
 

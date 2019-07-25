@@ -25,7 +25,7 @@ def generateCSR():
         certUtils.generateCSR(CName='mosca',
                               privateKeyFile=conf.certsDir + "/mosca.key",
                               csrFileName=conf.certsDir + "/mosca.csr",
-                              dnsname=['mqtt', 'mosca', 'localhost'])
+                              dnsname=conf.subjectAltNameDnsList)
 
 
 def askCertSign():
