@@ -248,7 +248,7 @@ class MqttBackend {
    * @param {function} callback The callback to be executed when the decision is
    * made.
    */
-  authenticate(client, username, password, callback) {
+  async authenticate(client, username, password, callback) {
     logger.debug(`Authenticating MQTT client: ${client.id}`, TAG);
 
     // Condition 1: client.id follows the pattern tenant:deviceId
@@ -297,7 +297,7 @@ class MqttBackend {
 
     // Condition 3: Device exists in dojot
     logger.debug(`Checking whether this device exists in dojot...`, TAG);
-    this.agent
+    await this.agent
       .getDevice(ids.device, ids.tenant)
       .then(() => {
         // add device to cache
@@ -348,7 +348,7 @@ class MqttBackend {
    * @param {function} callback The callback to be executed when the decision is
    * made
    */
-  _checkAuthorization(client, topic, tag, callback) {
+  async _checkAuthorization(client, topic, tag, callback) {
     logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`, TAG);
 
     logger.debug(`Retrieving cache entry...`, TAG);
@@ -388,7 +388,7 @@ class MqttBackend {
       logger.warn(`This behavior will be deprecated in the future.`, TAG);
       logger.warn(`Checking whether this device exists in dojot...`, TAG);
       // Device exists in dojot
-      this.agent.getDevice(ids.device, ids.tenant)
+      await this.agent.getDevice(ids.device, ids.tenant)
         .then(() => {
           logger.warn(`... device exists in dojot.`, TAG);
           logger.warn(`Adding it to the cache...`, TAG);
