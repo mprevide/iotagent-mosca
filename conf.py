@@ -9,5 +9,5 @@ keyLength = int(os.environ.get("MQTTREST_KEY_LENGHT", 2048))
 
 kafkaHost = os.environ.get("MQTTREST_KAFKA_HOST", "kafka:9092")
 
-ACLfilePath = "/opt/iot-agent/mosca/certs/access.acl"
-certsDir = "/opt/iot-agent/mosca/certs/"
+ACLfilePath = "./mosca/certs/access.acl"
+certsDir = "./mosca/certs/"
