@@ -59,25 +59,25 @@ $ node src/index.js or npm start
 ## Configuration
 These are the environment variables used by iotagent-mosca
 
-Key                     | Purpose                                       | Default Value
------------------------ | --------------------------------------------- | --------------
-BACKEND_HOST            | redis host                                    | mosca-redis
-BACKEND_PORT            | redis port                                    | 6379
-ALLOW_UNSECURED_MODE    | allow iotagent mosca to run on insecure mode  | false
-LOG_LEVEL               | logger level (debug, error, warning, info)    | info
-MOSCA_TLS_SECURE_CERT   | mosca tls **certificate** path                | ```<project-path>```/mosca/certs/mosca.crt
-MOSCA_TLS_SECURE_KEY    | mosca tls **key** path                        | ```<project-path>```/mosca/certs/mosca.key
-MOSCA_TLS_CA_CERT       | mosca tls **certificate authority** path      | ```<project-path>```/mosca/certs/ca.crt
-HC_UPTIME_TIMEOUT       | *healtcheck uptime timeout                     | 30000
-HC_MEMORY_USAGE_TIMEOUT | *healtcheck memory usage timeout               | 30000
-HC_CPU_USAGE_TIMEOUT    | *healtcheck cpu usage timeout                  | 30000
-HC_MONGODB_TIMEOUT      | *healtcheck mongodb monitor timeout            | 30000
-HC_KAFKA_TIMEOUT        | *healtcheck Kafka monitor timeout              | 30000
-MQTTREST_EJBCA_URL      | Mqtt Rest api ejbca utl                       | http://ejbca:5583
-MQTTREST_CA_NAME        | Mqtt Rest api certificate authority name      | IOTmidCA
-MQTTREST_KEY_LENGHT     | Mqtt Rest api key length                      | 2048
-MQTTREST_KAFKA_HOST     | Mqtt Rest api kafka hostname                  | kafka:9092
-MOSCA_TLS_DNS_LIST      | Mosca TLS dns list (separated by a comma)     | mqtt,mosca,localhost
+Key                     | Purpose                                             | Default Value
+----------------------- | --------------------------------------------------- | --------------
+BACKEND_HOST            | redis host                                          | mosca-redis
+BACKEND_PORT            | redis port                                          | 6379
+ALLOW_UNSECURED_MODE    | allow iotagent mosca to run on insecure mode        | false
+LOG_LEVEL               | logger level (debug, error, warning, info)          | info
+MOSCA_TLS_SECURE_CERT   | mosca tls **certificate** path                      | ```<project-path>```/mosca/certs/mosca.crt
+MOSCA_TLS_SECURE_KEY    | mosca tls **key** path                              | ```<project-path>```/mosca/certs/mosca.key
+MOSCA_TLS_CA_CERT       | mosca tls **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
+HC_UPTIME_TIMEOUT       | *healtcheck uptime timeout in milliseconds          | 30000
+HC_MEMORY_USAGE_TIMEOUT | *healtcheck memory usage timeout in milliseconds    | 30000
+HC_CPU_USAGE_TIMEOUT    | *healtcheck cpu usage timeout in milliseconds       | 30000
+HC_MONGODB_TIMEOUT      | *healtcheck mongodb monitor timeout in milliseconds | 30000
+HC_KAFKA_TIMEOUT        | *healtcheck Kafka monitor timeout in milliseconds   | 30000
+MQTTREST_EJBCA_URL      | Mqtt Rest api ejbca utl                             | http://ejbca:5583
+MQTTREST_CA_NAME        | Mqtt Rest api certificate authority name            | IOTmidCA
+MQTTREST_KEY_LENGHT     | Mqtt Rest api key length                            | 2048
+MQTTREST_KAFKA_HOST     | Mqtt Rest api kafka hostname                        | kafka:9092
+MOSCA_TLS_DNS_LIST      | Mosca TLS dns list (separated by a comma)           | mqtt,mosca,localhost
 
 *HealthCheck is responsible for monitoring all important internal states, connections to services and resources used (CPU and memory)
 
