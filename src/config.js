@@ -1,9 +1,7 @@
 'use strict';
 
 /* private */
-const unsecured_mode = (mode) => {
-    return (mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0);
-}
+const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
 
 /* public */
 var config = {};

@@ -10,7 +10,7 @@ logger.setLevel(logLevel);
 
 try {
 
-  if(config.allow_unsecured_mode === true){
+  if(config.allow_unsecured_mode === true) {
     logger.info("MQTT and MQTTS are enabled.", TAG);
   }
   else{
