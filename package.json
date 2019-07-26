@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "jest tests/unit-tests/*.test.js",
+    "test": "jest tests/unit-tests/*.test.js  --coverage --report=html",
     "start": "node src/index.js"
   },
   "repository": {
