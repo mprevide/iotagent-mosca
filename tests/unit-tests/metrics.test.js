@@ -1,32 +1,46 @@
 /* eslint-disable no-undef */
+"use strict";
 
-const Metrics = require("../../src/metrics").Metrics;
+/**
+ * Unit tests for iotagent module
+ *
+ * This module has the following dependencies:
+ *
+ * - express
+ */
 
-// jest.genMockFromModule('../../src/metrics');
-// jest.mock('../../src/metrics');
+const express = require("express");
+const moscaMestrics = require("../../src/metrics");
 
-// const mockMetrics = {
-//     metrics: jest.fn()
-//   };
-
-// Metrics.mockImplementation(() => mockMetrics);
+//
+// Mocking dependencies
+//
+jest.mock("express");
 
 describe("Testing payload", () => {
-    let metrics = new Metrics();
+    beforeEach(() => {
+        express.Router.mockClear();
+    });
 
-    test("Should return NULL because function expects two strings as argument", () => {
+
+    it("Should return NULL because function expects two strings as argument", () => {
+        const metrics = new moscaMestrics.Metrics();
+
         metrics.preparePayloadObject()
         expect(metrics.lastMetricsInfo.connectedClients).toBeNull();
-    });
 
-    test("Should return NULL because function expects two strings as argument", () => {
         metrics.preparePayloadObject(0);
         expect(metrics.lastMetricsInfo.connectedClients).toBeNull();
-    });
 
-    test("Should return the string passed as second argument as value to object attribute passed as first argument", () => {
-        const metricsAttribute = 'connectedClients';
+        const metricsAttribute = "connectedClients";
         metrics.preparePayloadObject(metricsAttribute, 20);
         expect(metrics.lastMetricsInfo[`${metricsAttribute}`]).toEqual('20');
+    });
+
+    it("Should get metrics object from endpoint", (done) => {
+        const metrics = new moscaMestrics.Metrics();
+        metrics.getHTTPRouter = jest.fn();
+
+        expect(metrics.getHTTPRouter()).toBeUndefined();
     });
 })
