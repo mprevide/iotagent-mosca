@@ -30,7 +30,7 @@ class MqttBackend {
     moscaInterfaces.push(mqtts);
 
     // optional
-    if (config.allow_unsecured_mode === 'true') {
+    if (config.allow_unsecured_mode === true) {
       var mqtt = {
         type: "mqtt",
         port: 1883
