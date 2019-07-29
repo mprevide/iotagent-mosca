@@ -14,6 +14,10 @@ class MqttBackend {
   constructor(agent) {
     // Mosca Settings
     var moscaInterfaces = [];
+    // Load CRL - Certificate Revocation List
+    var crls = [
+      fs.readFileSync(config.mosca_tls.clr)
+    ];
 
     // mandatory
     var mqtts = {
@@ -23,6 +27,7 @@ class MqttBackend {
         keyPath: config.mosca_tls.key,
         certPath: config.mosca_tls.cert,
         caPaths: [config.mosca_tls.ca],
+        crl: crls,
         requestCert: true, // enable requesting certificate from clients
         rejectUnauthorized: true // only accept clients with valid certificate
       }
