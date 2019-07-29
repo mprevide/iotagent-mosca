@@ -1,6 +1,7 @@
 "use strict";
 const mosca = require("mosca");
 const config = require("./config");
+const fs = require('fs');
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
 
@@ -16,7 +17,7 @@ class MqttBackend {
     var moscaInterfaces = [];
     // Load CRL - Certificate Revocation List
     var crls = [
-      fs.readFileSync(config.mosca_tls.clr)
+      fs.readFileSync(config.mosca_tls.crl)
     ];
 
     // mandatory
