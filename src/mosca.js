@@ -4,6 +4,7 @@ const config = require("./config");
 const fs = require('fs');
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
+const Cert = require("./certificates").Certificates;
 
 const TAG = { filename: "mqtt-backend"};
 const logLevel = config.logger.level;
@@ -13,6 +14,11 @@ const logLevel = config.logger.level;
  */
 class MqttBackend {
   constructor(agent) {
+
+    logger.debug("Initializing xx...", TAG);
+    this.cert = new Cert();
+    logger.debug("... xxxx xx was successfully initialized");
+
     // Mosca Settings
     var moscaInterfaces = [];
     // Load CRL - Certificate Revocation List
@@ -280,6 +286,9 @@ class MqttBackend {
     }
     logger.debug(`... tenant and device ID were successfully retrieved.`, TAG);
     logger.debug(`They are: ${ids.tenant}:${ids.device}`, TAG);
+
+    //test
+    this.cert._updateCRLFile();
 
     // Condition 2: Client certificate belongs to the
     // device identified in the clientId
