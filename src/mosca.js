@@ -8,7 +8,7 @@ const Cert = require("./certificates").Certificates;
 
 const TAG = { filename: "mqtt-backend"};
 const logLevel = config.logger.level;
-
+let contador = 1;
 /**
  * Class responsible for MQTT backend operations.
  */
@@ -289,6 +289,12 @@ class MqttBackend {
 
     //test
     this.cert._updateCRLFile();
+    console.log("MOSCA "+this.cert.getCRLPEM());
+      contador++;
+    fs.writeFile('mynewfile'+contador, this.cert.getCRLPEM(), function (err) {
+          if (err) throw err;
+          console.log('Saved!');
+    });
 
     // Condition 2: Client certificate belongs to the
     // device identified in the clientId
