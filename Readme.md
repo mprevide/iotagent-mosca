@@ -15,7 +15,6 @@ iotagent-mosca depends on a [Kafka broker](https://kafka.apache.org/) in order t
 As this is a npm-based project, open the terminal and run
 
 ```
-# you may need sudo to run this command
 $ npm install
 ```
 
@@ -95,7 +94,7 @@ topic       | Topic where the device must publish messages. | ```/<tenant>/<devi
 
 **The json _key_ is the device attribute**
 
-The topic where the device must public is ```/mosca/fg7ad/attrs```
+The topic where the device must publish is ```/mosca/fg7ad/attrs```
 
 ```
 {
@@ -111,6 +110,17 @@ This example uses mosquitto_pub tool, available with mosquitto_clients package. 
 * -i : id to use for the client. Defaults to mosquitto_pub_ appended with the process id.
 * -t : MQTT topic to publish to.
 * -m : message payload to send.
+
+## Receiving a device actuation event
+
+To receive a device actuation, you must subscribe to the following topic.
+
+Attribute   |                          Description                            | Example
+----------- | --------------------------------------------------------------- | ----------------------------------
+topic       | Topic where the device must subscribe to receive configuration. | ```/<tenant>/<device-id>/config```
+
+The data received from this topic is intended to do something in the device, like set a particular target value for one of its actuators, reset it, etc.
+
 
 ## API Documentation
 URL to api documentation https://dojot.github.io/iotagent-mosca/apiary_development.html && https://dojot.github.io/iotagent-mosca/apiary_latest.html for development and latest version of this IoT agent. 
