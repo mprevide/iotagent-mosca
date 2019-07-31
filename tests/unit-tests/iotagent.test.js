@@ -19,9 +19,16 @@ const defaultConfig = require("../../src/config");
 jest.mock("mosca");
 
 describe("Mosca backend", () => {
-
     beforeEach(() => {
         mosca.Server.mockClear();
+    });
+
+    afterEach(() => {
+        mosca.Server.mockReset();
+    });
+
+    afterAll(() => {
+        mosca.Server.mockRestore();
     });
 
     it("Should build a MqttBackend instance", () => {
