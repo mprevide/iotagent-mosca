@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "jest tests/unit-tests/*.test.js  --coverage --report=html",
+    "test": "jest tests/unit-tests/*.test.js --detectOpenHandles --coverage --report=html",
     "start": "node src/index.js"
   },
   "repository": {
@@ -32,6 +32,8 @@
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "jest": "^24.8.0"
+    "jest": "^24.8.0",
+    "moxios": "^0.4.0",
+    "supertest": "^4.0.2"
   }
 }
