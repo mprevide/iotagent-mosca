@@ -24,9 +24,17 @@ const packetSetup = {
 }
 
 const agentSetup = {
-    getDevice(device, tenant) {
-        return true;
-    }
+    metricsStore: {
+        lastMetricsInfo: {
+            connectedClients: null,
+            connectionsLoad1min: null,
+            connectionsLoad5min: null,
+            connectionsLoad15min: null,
+            messagesLoad1min: null,
+            messagesLoad5min: null,
+            messagesLoad15min: null
+        }
+    },
 }
 
 module.exports = {
