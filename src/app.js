@@ -10,10 +10,9 @@ const TAG = {filename: "app"};
 
 var isInitialized = false;
 var httpServer;
+const app = express();
 
 function initApp(healthChecker, metricStore) {
-    const app = express();
-
     app.use(bodyParser.json());
     app.use(healthCheck.getHTTPRouter(healthChecker));
     app.use(metrics.getHTTPRouter(metricStore));
@@ -35,6 +34,6 @@ function stopApp() {
 }
 
 module.exports = {
-    initApp, stopApp
+    initApp, stopApp, app
 };
 
