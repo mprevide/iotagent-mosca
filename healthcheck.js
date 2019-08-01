@@ -1,7 +1,7 @@
 "use strict";
 
 var os = require("os")
-var pjson = require ('./package.json');
+var pjson = require('./package.json');
 var config = require("./config");
 var HealthCheck = require("@dojot/healthcheck");
 
@@ -25,6 +25,7 @@ class AgentHealthChecker {
     this.kafkaMessenger = kafkaMessenger;
     this.redisClient = redisClient;
   }
+
   /**
    * Register all monitors
    */
@@ -51,8 +52,10 @@ class AgentHealthChecker {
       return value;
     };
 
-    this.healthChecker.registerMonitor(uptime, collectUptime,
-      config.healthcheck.timeout.uptime);
+    this.healthChecker.registerMonitor(
+uptime, collectUptime,
+      config.healthcheck.timeout.uptime
+);
   }
 
   _registerMemoryMonitor() {
@@ -77,8 +80,10 @@ class AgentHealthChecker {
       return pmem;
     };
 
-    this.healthChecker.registerMonitor(memory, collectMemory,
-      config.healthcheck.timeout.memory);
+    this.healthChecker.registerMonitor(
+memory, collectMemory,
+      config.healthcheck.timeout.memory
+);
   }
 
   _registerCpuMonitor() {
@@ -104,8 +109,10 @@ class AgentHealthChecker {
       return pcpu;
     };
 
-    this.healthChecker.registerMonitor(cpu, collectCpu,
-      config.healthcheck.timeout.cpu);
+    this.healthChecker.registerMonitor(
+cpu, collectCpu,
+      config.healthcheck.timeout.cpu
+);
   }
 
   _registerRedisMonitor() {
@@ -135,7 +142,8 @@ class AgentHealthChecker {
       };
 
       // It can be the consumer or the producer because the returned value is the same.
-      this.kafkaMessenger.consumer.consumer.getMetadata({ timeout: 3000 },
+      this.kafkaMessenger.consumer.consumer.getMetadata(
+{ timeout: 3000 },
         (error, metadata) => {
           if (error) {
             reject(new Error('Internal error while getting kafka metadata.'));
@@ -147,7 +155,8 @@ class AgentHealthChecker {
             };
             resolve(kafkaStatus);
           }
-        });
+        }
+);
     });
   }
 
@@ -163,8 +172,7 @@ class AgentHealthChecker {
     };
 
 
-    const collectKafkaState = (trigger = HealthCheck.DataTrigger) => {
-      return this._getKafkaStatus().then(status => {
+    const collectKafkaState = (trigger = HealthCheck.DataTrigger) => this._getKafkaStatus().then(status => {
         if (status.connected) {
           trigger.trigger(1 /*one connection */, 'pass');
         }
@@ -174,11 +182,12 @@ class AgentHealthChecker {
       }).catch(error => {
         trigger.trigger(0 /* zero connection */, 'fail', error);
       });
-    };
 
 
-    this.healthChecker.registerMonitor(kafka, collectKafkaState,
-      config.healthcheck.timeout.kafka);
+    this.healthChecker.registerMonitor(
+kafka, collectKafkaState,
+      config.healthcheck.timeout.kafka
+);
 
   }
 }

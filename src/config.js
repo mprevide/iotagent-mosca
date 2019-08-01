@@ -1,11 +1,15 @@
 'use strict';
 
+/* private */
+const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
+
+/* public */
 var config = {};
 
 config.backend_host = process.env.BACKEND_HOST || 'mosca-redis';
 config.backend_port = process.env.BACKEND_PORT || 6379;
 
-config.allow_unsecured_mode = process.env.ALLOW_UNSECURED_MODE || 'false';
+config.allow_unsecured_mode = unsecured_mode(process.env.ALLOW_UNSECURED_MODE);
 
 config.logger = {
     level: process.env.LOG_LEVEL || 'info'
