@@ -99,10 +99,11 @@ class Certificates {
                 if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
                     this.revokeSerialNumberSet = new Set();
                     logger.debug(`No certificate revoked found.`, TAG);
+                } else {
+                    const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
+                    this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
+                    logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
                 }
-                const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
-                this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
-                logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
             }
         });
         logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
