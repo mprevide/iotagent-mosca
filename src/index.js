@@ -3,7 +3,7 @@ const logger = require("@dojot/dojot-module-logger").logger;
 const CronJob = require('cron').CronJob;
 const IoTAgent = require("./iotagent").IoTAgent;
 const AgentHealthChecker = require("./healthcheck").AgentHealthChecker;
-const Cert = require("./certificates");
+const Certificates = require("./certificates");
 const app = require("./app");
 const config = require("./config");
 const TAG = { filename: "main" };
@@ -32,7 +32,7 @@ try {
   if(config.mosca_tls.crlUpdateTime) {
     logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
     const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function () {
-      Cert.updateCRL();
+      Certificates.updateCRL();
     });
     jobUpdateCRL.start();
     logger.info(`... cron to update CRL every ${config.mosca_tls.crlUpdateTime} started`, TAG);
