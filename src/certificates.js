@@ -6,6 +6,10 @@ const openssl = require('openssl-nodejs');
 const config = require("./config");
 const TAG = {filename: "certificates"};
 
+/**
+ * Header for axios request
+ * @type {{headers: {Accept: string, "content-type": string}}}
+ */
 const httpHeader = {
     headers: {
         'content-type': 'application/json',
@@ -14,19 +18,26 @@ const httpHeader = {
 };
 
 /**
- *
+ * Class responsible for maintaining and managing certificates,
+ * currently CRL only, but is intended for all certificates.
  */
 class Certificates {
     /**
      *
      */
     constructor() {
+        //create crlPEM
         this.crlPEM = null;
+        //filled crlPEM
         this._initCRL();
 
         this.revokeSerialNumberSet = new Set();
     }
 
+    /**
+     * Fills CRL with initial
+     * @private
+     */
     _initCRL() {
         if (config.mosca_tls.crl) {
             try {
@@ -42,13 +53,19 @@ class Certificates {
     }
 
     /**
-     *
+     * Returns CRL PEM
      * @returns {string|null|Buffer}
      */
     getCRLPEM() {
         return this.crlPEM;
     }
 
+    /**
+     *  Add PEM pattern headers
+     * @param rawCRL
+     * @returns {string}
+     * @private
+     */
     static _formatPEM(rawCRL) {
         return "-----BEGIN X509 CRL-----\n" +
             Certificates._format(rawCRL) +
@@ -56,7 +73,7 @@ class Certificates {
     }
 
     /**
-     *
+     * Checks if a certificate is revoked by its serial number.
      * @param serialNumber
      * @returns {boolean}
      */
@@ -65,7 +82,7 @@ class Certificates {
     }
 
     /**
-     *
+     * Update set with Certificate Revocation List
      * @param data
      * @private
      */
@@ -88,7 +105,7 @@ class Certificates {
     }
 
     /**
-     *
+     * Regex to extract array with revoked series numbers from crl
      * @param crlTextBuffer
      * @returns {RegExpMatchArray}
      * @private
@@ -100,8 +117,7 @@ class Certificates {
     }
 
     /**
-     *
-     *
+     * Updates CRL to search for EJBCA
      */
     updateCRL() {
         logger.info(`Starting update CRL...`, TAG);
@@ -124,7 +140,7 @@ class Certificates {
     }
 
     /**
-     *
+     * CRL Formats for PEM Body
      * @param rawCertificate
      * @returns {void | string | never}
      * @private

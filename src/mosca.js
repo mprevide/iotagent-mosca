@@ -13,10 +13,8 @@ const logLevel = config.logger.level;
  */
 class MqttBackend {
   constructor(agent) {
-
     // Mosca Settings
     var moscaInterfaces = [];
-    // Load CRL - Certificate Revocation List
 
     // mandatory
     var mqtts = {
@@ -293,8 +291,10 @@ class MqttBackend {
               logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
               callback(null, false);
               return;
-          } else if (!clientCertificate.hasOwnProperty("serialNumber") ||
-              Certificates.hasRevoked(clientCertificate.serialNumber)) {
+          //If null the CRL will not be updated after initialization, so verification is not required.
+          } else if (config.mosca_tls.crlUpdateTime &&
+              (!clientCertificate.hasOwnProperty("serialNumber") ||
+              Certificates.hasRevoked(clientCertificate.serialNumber))) {
               // reject client connection
               logger.debug(`... client certificate has been Revoked.`, TAG);
               logger.warn(`Connection rejected for ${client.id} due to revoked client certificate.`);

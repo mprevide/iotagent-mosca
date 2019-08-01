@@ -28,12 +28,15 @@ try {
   agent.initHealthCheck(healthChecker.healthChecker);
   logger.info(`... health checker started`, TAG);
 
-  logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
-  const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function() {
+  //If null the CRL will not be updated after initialization
+  if(config.mosca_tls.crlUpdateTime) {
+    logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
+    const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function () {
       Cert.updateCRL();
-  });
-  jobUpdateCRL.start();
-  logger.info(`... cron to update CRL every ${config.mosca_tls.crlUpdateTime} started`, TAG);
+    });
+    jobUpdateCRL.start();
+    logger.info(`... cron to update CRL every ${config.mosca_tls.crlUpdateTime} started`, TAG);
+  }
 
   logger.info(`Initializing endpoints...`, TAG);
   app.initApp(healthChecker.healthChecker, agent.metricsStore);
