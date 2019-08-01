@@ -90,20 +90,32 @@ class Certificates {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl(['crl', '-in', {
             name: 'ca.crl',
-            buffer: Buffer.from(crlPEM)
+            buffer: Buffer.from(crlPEM, 'ascii')
         }, '-text', '-noout'], (err, buffer) => {
             let crlTextBuffer = buffer.toString();
-            if (!err) {
-                if (crlTextBuffer.match(/^No Revoked Certificates.$/gm)) {
+            if (err && err.length) {
+                logger.warn(`OpenSSL error ${err.toString()}`, TAG);
+            } else {
+                if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
                     this.revokeSerialNumberSet = new Set();
                     logger.debug(`No certificate revoked found.`, TAG);
                 }
-                this.revokeSerialNumberSet = new Set(Certificates._extractSerialNumber(crlTextBuffer));
-            } else {
-                logger.warn(`OpenSSL error ${err.toString()}`, TAG);
+                const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
+                this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
+                logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
             }
         });
         logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
+    }
+
+    /**
+     * Check if there are no certificate revoked
+     * @param crlTextBuffer
+     * @returns {Boolean|*|Promise<Response | undefined>|RegExpMatchArray|never}
+     * @private
+     */
+    static _checkHasNoRevoked(crlTextBuffer) {
+        return crlTextBuffer.match(/^No Revoked Certificates.$/gm);
     }
 
     /**
