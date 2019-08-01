@@ -69,7 +69,7 @@ class Certificates {
     static _formatPEM(rawCRL) {
         return "-----BEGIN X509 CRL-----\n" +
             Certificates._format(rawCRL) +
-            "\n-----END X509 CRL-----\n";
+            "-----END X509 CRL-----\n";
     }
 
     /**
@@ -90,7 +90,7 @@ class Certificates {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl(['crl', '-in', {
             name: 'ca.crl',
-            buffer: crlPEM
+            buffer: Buffer.from(crlPEM)
         }, '-text', '-noout'], (err, buffer) => {
             let crlTextBuffer = buffer.toString();
             if (!err) {
@@ -100,7 +100,7 @@ class Certificates {
                 }
                 this.revokeSerialNumberSet = new Set(Certificates._extractSerialNumber(crlTextBuffer));
             } else {
-                logger.warn(`OpenSSL error: ${err.toString()}`, TAG);
+                logger.warn(`OpenSSL error ${err.toString()}`, TAG);
             }
         });
         logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
@@ -113,9 +113,10 @@ class Certificates {
      * @private
      */
     static _extractSerialNumber(crlTextBuffer) {
-        let found = crlTextBuffer.match(/(Serial Number: \w+)/gm).join(" ");
-        found = found.match(/\b(?:(?!Serial|Number: )\w)+\b/gm);
-        return found;
+        return crlTextBuffer
+            .match(/(Serial Number: \w+)/gm)
+            .join(" ")
+            .match(/\b(?:(?!Serial|Number: )\w)+\b/gm);
     }
 
     /**
@@ -150,12 +151,10 @@ class Certificates {
      * @private
      */
     static _format(rawCertificate) {
-        // crl = ("-----BEGIN X509 CRL-----\n"
-        //     + re.sub("(.{64})", "\\1\n", crlPEM, 0, re.DOTALL)
-        //     + "\n-----END X509 CRL-----\n")
-
-        //derBuffer.toString('base64').match(/.{0,64}/_updateRevokeSerialSet).join('\n')
-        return rawCertificate.replace("(.{64})", "\\1\n");
+        return rawCertificate
+            .toString('base64')
+            .match(/.{0,64}/g)
+            .join('\n');
     }
 }
 
