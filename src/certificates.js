@@ -83,13 +83,13 @@ class Certificates {
 
     /**
      * Update set with Certificate Revocation List
-     * @param data
      * @private
+     * @param crlPEM
      */
-    _updateRevokeSerialSet(data) {
+    _updateRevokeSerialSet(crlPEM) {
         openssl(['crl', '-in', {
             name: 'ca.crl',
-            buffer: fs.readFileSync(config.mosca_tls.crl)
+            buffer: crlPEM
         }, '-text', '-noout'], (err, buffer) => {
             let crlTextBuffer = buffer.toString();
             if (!err) {
@@ -130,7 +130,8 @@ class Certificates {
         }).then(response => {
             if (response.status === 200) {
                 const {data: {CRL}} = response;
-                this.crlPEM = this._updateRevokeSerialSet(Certificates._formatPEM(CRL));
+                this.crlPEM = Certificates._formatPEM(CRL);
+                this._updateRevokeSerialSet(this.crlPEM);
             } else {
                 logger.warn(`HTTP ERROR to access ${url}`, TAG);
                 logger.debug(`HTTP response ERROR ${response}`, TAG);
