@@ -18,8 +18,8 @@ const httpHeader = {
 };
 
 /**
- * Class responsible for maintaining and managing certificates,
- * currently CRL only, but is intended for all certificates.
+ * Class responsible for managing certificates,
+ * currently CRL only, but intended for all certificates.
  */
 class Certificates {
     /**
@@ -73,7 +73,7 @@ class Certificates {
     }
 
     /**
-     * Checks if a certificate is revoked by its serial number.
+     * Checks if a certificate is revoked by serial number
      * @param serialNumber
      * @returns {boolean}
      */
