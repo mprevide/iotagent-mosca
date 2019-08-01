@@ -87,6 +87,7 @@ class Certificates {
      * @param crlPEM
      */
     _updateRevokeSerialSet(crlPEM) {
+        logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl(['crl', '-in', {
             name: 'ca.crl',
             buffer: crlPEM
@@ -102,6 +103,7 @@ class Certificates {
                 logger.warn(`OpenSSL error: ${err.toString()}`, TAG);
             }
         });
+        logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
     }
 
     /**
@@ -129,11 +131,12 @@ class Certificates {
             url: url,
         }).then(response => {
             if (response.status === 200) {
+                logger.debug(`HTTP response ${response}`, TAG);
                 const {data: {CRL}} = response;
                 this.crlPEM = Certificates._formatPEM(CRL);
                 this._updateRevokeSerialSet(this.crlPEM);
             } else {
-                logger.warn(`HTTP ERROR to access ${url}`, TAG);
+                logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
                 logger.debug(`HTTP response ERROR ${response}`, TAG);
             }
         });
