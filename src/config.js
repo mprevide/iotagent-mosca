@@ -4,7 +4,7 @@
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
 
 /* public */
-var config = {};
+const config = {};
 
 config.backend_host = process.env.BACKEND_HOST || 'mosca-redis';
 config.backend_port = process.env.BACKEND_PORT || 6379;
@@ -21,7 +21,9 @@ config.mosca_tls = {
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
     crl: process.env.MOSCA_TLS_CA_CRL || './mosca/certs/ca.crl',
     ejbcaApiUrl: process.env.MQTTREST_EJBCA_URL || 'http://ejbca:5583',
-    caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA'
+    caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA',
+    //Read up on cron patterns here (http://crontab.org/)
+    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIPE || '*/1 * * * *'
 };
 
 config.healthcheck = {

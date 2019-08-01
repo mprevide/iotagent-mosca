@@ -1,30 +1,22 @@
 "use strict";
 const mosca = require("mosca");
 const config = require("./config");
-const fs = require('fs');
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
-const Cert = require("./certificates").Certificates;
+const Certificates = require("./certificates");
 
 const TAG = { filename: "mqtt-backend"};
 const logLevel = config.logger.level;
-let contador = 1;
+
 /**
  * Class responsible for MQTT backend operations.
  */
 class MqttBackend {
   constructor(agent) {
 
-    logger.debug("Initializing xx...", TAG);
-    this.cert = new Cert();
-    logger.debug("... xxxx xx was successfully initialized");
-
     // Mosca Settings
     var moscaInterfaces = [];
     // Load CRL - Certificate Revocation List
-    var crls = [
-      fs.readFileSync(config.mosca_tls.crl)
-    ];
 
     // mandatory
     var mqtts = {
@@ -34,7 +26,7 @@ class MqttBackend {
         keyPath: config.mosca_tls.key,
         certPath: config.mosca_tls.cert,
         caPaths: [config.mosca_tls.ca],
-        crl: crls,
+        crl: Certificates.getCRLPEM(),
         requestCert: true, // enable requesting certificate from clients
         rejectUnauthorized: true // only accept clients with valid certificate
       }
@@ -239,7 +231,6 @@ class MqttBackend {
       }
     }
 
-    return;
   }
 
   /**
@@ -287,33 +278,30 @@ class MqttBackend {
     logger.debug(`... tenant and device ID were successfully retrieved.`, TAG);
     logger.debug(`They are: ${ids.tenant}:${ids.device}`, TAG);
 
-    //test
-    this.cert._updateCRLFile();
-    console.log("MOSCA "+this.cert.getCRLPEM());
-      contador++;
-    fs.writeFile('mynewfile'+contador, this.cert.getCRLPEM(), function (err) {
-          if (err) throw err;
-          console.log('Saved!');
-    });
-
     // Condition 2: Client certificate belongs to the
     // device identified in the clientId
     // TODO: the clientId must contain the tenant too!
     logger.debug(`Checking its certificates...`, TAG);
-    if (client.connection.stream.hasOwnProperty("TLSSocket")) {
-      const clientCertificate = client.connection.stream.getPeerCertificate();
-      if (
-        !clientCertificate.hasOwnProperty("subject") ||
-        !clientCertificate.subject.hasOwnProperty("CN") ||
-        clientCertificate.subject.CN !== ids.device
-      ) {
-        // reject client connection
-        logger.debug(`... client certificate is invalid.`, TAG);
-        logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
-        callback(null, false);
-        return;
+      if (client.connection.stream.hasOwnProperty("TLSSocket")) {
+          const clientCertificate = client.connection.stream.getPeerCertificate();
+          if (!clientCertificate.hasOwnProperty("subject") ||
+              !clientCertificate.subject.hasOwnProperty("CN") ||
+              clientCertificate.subject.CN !== ids.device) {
+
+              // reject client connection
+              logger.debug(`... client certificate is invalid.`, TAG);
+              logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
+              callback(null, false);
+              return;
+          } else if (!clientCertificate.hasOwnProperty("serialNumber") ||
+              Certificates.hasRevoked(clientCertificate.serialNumber)) {
+              // reject client connection
+              logger.debug(`... client certificate has been Revoked.`, TAG);
+              logger.warn(`Connection rejected for ${client.id} due to revoked client certificate.`);
+              callback(null, false);
+              return;
+          }
       }
-    }
     logger.debug(`... client certificate was successfully retrieved and it is valid.`, TAG);
 
     // Condition 3: Device exists in dojot

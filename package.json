@@ -27,9 +27,11 @@
     "@dojot/dojot-module-logger": "0.0.1-alpha.5",
     "@dojot/healthcheck": "^0.0.1-alpha",
     "@dojot/iotagent-nodejs": "^2.1.0-beta",
+    "cert-info": "^1.5.1",
     "cron": "^1.7.1",
     "express": "4.16.3",
     "mosca": "^2.8.0",
+    "openssl-nodejs": "^1.0.5",
     "redis": "^2.8.0"
   }
 }

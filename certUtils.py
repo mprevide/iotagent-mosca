@@ -104,7 +104,7 @@ def retrieveCAChain(EJBCA_API_URL, CAName):
 
 def retrieveCACRL(EJBCA_API_URL, CAName):
     response = requests.get(EJBCA_API_URL + '/ca/' + CAName + "/crl",
-                            headers=defaultHeader)
+                            headers=defaultHeader,params={'update': 'true'})
     return json.loads(response.content)['CRL']
 
 
