@@ -20,7 +20,7 @@ config.mosca_tls = {
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
     crl: process.env.MOSCA_TLS_CA_CRL || './mosca/certs/ca.crl',
-    ejbcaApiUrl: process.env.MQTTREST_EJBCA_URL || 'http://ejbca:5583',
+    pkiApiUrl: process.env.MQTTREST_EJBCA_URL || 'http://ejbca:5583',
     caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA',
     //If null the CRL will not be updated after initialization
     //Read up on cron patterns here (http://crontab.org/)

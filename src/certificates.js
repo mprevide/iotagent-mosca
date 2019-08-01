@@ -117,12 +117,12 @@ class Certificates {
     }
 
     /**
-     * Updates CRL to search for EJBCA
+     * Updates CRL from PKI
      */
     updateCRL() {
         logger.info(`Starting update CRL...`, TAG);
-        const {ejbcaApiUrl, caName} = config.mosca_tls;
-        const url = ejbcaApiUrl + '/ca/' + caName + "/crl?update=true";
+        const {pkiApiUrl, caName} = config.mosca_tls;
+        const url = pkiApiUrl + '/ca/' + caName + "/crl?update=true";
         axios({
             method: 'GET',
             httpHeader,
@@ -133,7 +133,7 @@ class Certificates {
                 this.crlPEM = this._updateRevokeSerialSet(Certificates._formatPEM(CRL));
             } else {
                 logger.warn(`HTTP ERROR to access ${url}`, TAG);
-                logger.debug(`HTTP response ERROR $(response)`, TAG);
+                logger.debug(`HTTP response ERROR ${response}`, TAG);
             }
         });
         logger.info(`... update CRL finish`, TAG);
