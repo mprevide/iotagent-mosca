@@ -25,12 +25,17 @@ function initApp(healthChecker, metricStore) {
         isInitialized = true;
     });
     logger.debug("... configuration endpoints were initialized", TAG);
+
+    return isInitialized;
 }
 
 function stopApp() {
     if(isInitialized) {
         httpServer.close();
+        isInitialized = false;
     }
+
+    return isInitialized;
 }
 
 module.exports = {
