@@ -29,9 +29,12 @@ function get(url, body) {
 }
 
 describe("Testing metrics functions", () => {
+    afterEach(() => {
+        stopApp();
+    });
 
-    beforeEach(() => {
-        const metricStore = new moscaMestrics.Metrics();
+    it('Should return OK status and the metricStore object', async () => {
+        let metricStore = new moscaMestrics.Metrics();
             metricStore.lastMetricsInfo = {
             connectedClients: 0,
             connectionsLoad1min: 0,
@@ -42,18 +45,16 @@ describe("Testing metrics functions", () => {
             messagesLoad15min: 0
         };
 
-         app.use(moscaMestrics.getHTTPRouter(metricStore));
-    });
-
-    afterEach(() => {
-        stopApp();
-    });
-
-    it('Should return OK status and the metricStore object', async () => {
-        const response = await get('/iotagent-mqtt/metrics', '');
+        app.use(moscaMestrics.getHTTPRouter(metricStore));
+        let response = await get('/iotagent-mqtt/metrics', '');
 
         expect(response.status).toEqual(200);
         expect(JSON.parse(response.text)).toEqual({"connectedClients": 0, "connectionsLoad1min": 0, "connectionsLoad5min": 0, "connectionsLoad15min": 0, "messagesLoad1min": 0, "messagesLoad5min": 0, "messagesLoad15min": 0});
+
+        metricStore.lastMetricsInfo = null;
+        app.use(moscaMestrics.getHTTPRouter(metricStore));
+        response = await get('/iotagent-mqtt/metrics', '');
+        expect(response.status).toEqual(500);
     });
 
 
