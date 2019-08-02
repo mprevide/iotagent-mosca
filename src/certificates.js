@@ -40,9 +40,9 @@ class Certificates {
      * @private
      */
     _initCRL() {
-        if (config.mosca_tls.crl && fs.existsSync(config.mosca_tls.crl)) {
+        if (config.mosca_tls.crl && fs.exists(config.mosca_tls.crl)) {
             try {
-                this.crlPEM = fs.readFileSync(config.mosca_tls.crl);
+                this.crlPEM = fs.readFile(config.mosca_tls.crl);
             } catch (err) {
                 if (err.code === 'ENOENT') {
                     logger.warn(`CRL File not found`, TAG);
@@ -92,15 +92,16 @@ class Certificates {
     _updateRevokeSerialSet(crlPEM) {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl([
-'crl',
-'-in',
-{
-            name: 'ca.crl',
-            buffer: Buffer.from(crlPEM, 'ascii')
-        },
-'-text',
-'-noout'
-], (err, buffer) => {
+                'crl',
+                '-in',
+                {
+                    name: 'ca.crl',
+                    buffer: Buffer.from(crlPEM, 'ascii')
+                },
+                '-text',
+                '-noout'
+                ],
+            (err, buffer) => {
             let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
