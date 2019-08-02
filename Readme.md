@@ -77,7 +77,7 @@ MQTTREST_EJBCA_URL      | Mqtt Rest api ejbca utl                             | 
 MQTTREST_CA_NAME        | Mqtt Rest api certificate authority name            | IOTmidCA
 MQTTREST_KEY_LENGHT     | Mqtt Rest api key length                            | 2048
 MQTTREST_KAFKA_HOST     | Mqtt Rest api kafka hostname                        | kafka:9092
-MQTTREST_CRL_UPDATE_TIPE| CRL will be updated every set time. If null the CRL will not be updated after initialization. By default will be updated every 2 hours. (Read up on cron patterns here http://crontab.org/).    | 0 */2 * * *
+MQTTREST_CRL_UPDATE_TIME| CRL will be updated every set time. If null the CRL will not be updated after initialization. By default will be updated every 2 hours. (Read up on cron patterns here http://crontab.org/).    | 0 */2 * * *
 
 
 *HealthCheck is responsible for monitoring all important internal states, connections to services and resources used (CPU and memory)
