@@ -293,7 +293,7 @@ class MqttBackend {
               callback(null, false);
               return;
           //If null the CRL will not be updated after initialization, so verification is not required.
-          } else if (config.mosca_tls.crlUpdateTime &&
+          } else if (defaultConfig.mosca_tls.crlUpdateTime &&
               (!clientCertificate.hasOwnProperty("serialNumber") ||
               Certificates.hasRevoked(clientCertificate.serialNumber))) {
               // reject client connection

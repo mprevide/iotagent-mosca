@@ -24,7 +24,8 @@ config.mosca_tls = {
     caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA',
     //If null the CRL will not be updated after initialization
     //Read up on cron patterns here (http://crontab.org/)
-    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIPE || '*/1 * * * *'
+    //By default will be updated every 2 hours
+    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIPE || '*/1 * * * *' //0 */2 * * *
 };
 
 config.healthcheck = {
