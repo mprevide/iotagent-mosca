@@ -50,11 +50,9 @@ class Certificates {
                     throw err;
                 }
             }
-        } else {
-            if (config.mosca_tls.crlUpdateTime) {
+        } else if (config.mosca_tls.crlUpdateTime) {
                 this.updateCRL();
             }
-        }
     }
 
     /**
@@ -72,9 +70,9 @@ class Certificates {
      * @private
      */
     static _formatPEM(rawCRL) {
-        return "-----BEGIN X509 CRL-----\n" +
-            Certificates._format(rawCRL) +
-            "-----END X509 CRL-----\n";
+        return `-----BEGIN X509 CRL-----\n${
+            Certificates._format(rawCRL)
+            }-----END X509 CRL-----\n`;
     }
 
     /**
@@ -93,17 +91,22 @@ class Certificates {
      */
     _updateRevokeSerialSet(crlPEM) {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
-        openssl(['crl', '-in', {
+        openssl([
+'crl',
+'-in',
+{
             name: 'ca.crl',
             buffer: Buffer.from(crlPEM, 'ascii')
-        }, '-text', '-noout'], (err, buffer) => {
+        },
+'-text',
+'-noout'
+], (err, buffer) => {
             let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
                 //kill process
                 throw Error(`OpenSSL error ${err.toString()}`);
-            } else {
-                if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
+            } else if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
                     this.revokeSerialNumberSet = new Set();
                     logger.debug(`No certificate revoked found.`, TAG);
                 } else {
@@ -111,7 +114,6 @@ class Certificates {
                     this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
                     logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
                 }
-            }
         });
         logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
     }
@@ -145,7 +147,7 @@ class Certificates {
     updateCRL() {
         logger.info(`Starting update CRL...`, TAG);
         const {pkiApiUrl, caName} = config.mosca_tls;
-        const url = pkiApiUrl + '/ca/' + caName + "/crl?update=true";
+        const url = `${pkiApiUrl}/ca/${caName}/crl?update=true`;
         axios({
             method: 'GET',
             httpHeader,
