@@ -11,13 +11,17 @@ from OpenSSL import crypto
 # these functions  may throw crypto.Error
 
 def saveCRL(filename, rawCRL):
+    print(">"+rawCRL+"<")
     crl = ("-----BEGIN X509 CRL-----\n"
-           + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL)
+           + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL).strip()
            + "\n-----END X509 CRL-----\n")
-    crypto.load_crl(crypto.FILETYPE_PEM, crl)
 
     with open(filename, "w") as crlFile:
-        crlFile.write(crl)
+            crlFile.write(crl)
+
+    crypto.load_crl(crypto.FILETYPE_PEM, crl)
+
+
 
 
 def saveCRT(filename, rawCRT):
