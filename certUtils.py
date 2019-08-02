@@ -11,7 +11,6 @@ from OpenSSL import crypto
 # these functions  may throw crypto.Error
 
 def saveCRL(filename, rawCRL):
-    print(">"+rawCRL+"<")
     crl = ("-----BEGIN X509 CRL-----\n"
            + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL).strip()
            + "\n-----END X509 CRL-----\n")
