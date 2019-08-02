@@ -50,7 +50,9 @@ class Certificates {
                 }
             }
         } else {
-            this.updateCRL();
+            if (config.mosca_tls.crlUpdateTime) {
+                this.updateCRL();
+            }
         }
     }
 
