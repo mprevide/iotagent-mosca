@@ -91,7 +91,8 @@ class Certificates {
      */
     _updateRevokeSerialSet(crlPEM) {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
-        openssl([
+        openssl(
+[
                 'crl',
                 '-in',
                 {
@@ -115,7 +116,8 @@ class Certificates {
                     this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
                     logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
                 }
-        });
+        }
+);
         logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
     }
 
