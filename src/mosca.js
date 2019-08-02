@@ -1,18 +1,19 @@
 "use strict";
 const mosca = require("mosca");
-const config = require("./config");
+const defaultConfig = require("./config");
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
 const Certificates = require("./certificates");
 
 const TAG = { filename: "mqtt-backend"};
-const logLevel = config.logger.level;
+const logLevel = defaultConfig.logger.level;
 
 /**
  * Class responsible for MQTT backend operations.
  */
 class MqttBackend {
-  constructor(agent) {
+  constructor(agent, userConfig) {
+    const config = userConfig || defaultConfig;
     // Mosca Settings
     var moscaInterfaces = [];
 
@@ -122,12 +123,12 @@ class MqttBackend {
     const boundProcessMessage = this._processMessage.bind(this);
     this.server.on("published", boundProcessMessage);
     // Fired when a client connects to mosca server
-    this.server.on('clientConnected', (client) => {
+    this.server.on("clientConnected", (client) => {
       logger.info(`Client connected: ${client.id}`, TAG);
     });
 
     // Fired when a client disconnects from mosca server
-    this.server.on('clientDisconnected', (client) => {
+    this.server.on("clientDisconnected", (client) => {
       logger.info(`Client disconnected: ${client.id}`, TAG);
       this.cache.delete(client.id);
     });
