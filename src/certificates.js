@@ -22,6 +22,7 @@ const httpHeader = {
  * currently CRL only, but intended for all certificates.
  */
 class Certificates {
+
     /**
      *
      */
@@ -39,7 +40,7 @@ class Certificates {
      * @private
      */
     _initCRL() {
-        if (config.mosca_tls.crl) {
+        if (config.mosca_tls.crl && fs.existsSync(config.mosca_tls.crl)) {
             try {
                 this.crlPEM = fs.readFileSync(config.mosca_tls.crl);
             } catch (err) {
