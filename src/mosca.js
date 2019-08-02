@@ -258,7 +258,7 @@ class MqttBackend {
     logger.debug(`Trying to retrieve tenant and device ID...`, TAG);
     let ids = this.parseClientIdOrTopic(client.id);
     if (!ids) {
-      if (client.connection.stream.hasOwnProperty("TLSSocket")) {
+      if (client.connection.stream instanceof tls.TLSSocket) {
         // reject client connection
         logger.debug(`... could not get tenant and device ID.`, TAG);
         logger.warn(`Connection rejected for ${client.id} due to invalid client ID.`, TAG);
@@ -281,7 +281,7 @@ class MqttBackend {
     // device identified in the clientId
     // TODO: the clientId must contain the tenant too!
     logger.debug(`Checking its certificates...`, TAG);
-      if (client.connection.stream.getPeerCertificate()) {
+      if (client.connection.stream instanceof tls.TLSSocket) {
           const clientCertificate = client.connection.stream.getPeerCertificate();
 
           if (!clientCertificate.hasOwnProperty("subject") ||
