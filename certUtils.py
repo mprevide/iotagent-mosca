@@ -16,10 +16,12 @@ def saveCRL(filename, rawCRL):
            + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL).strip()
            + "\n-----END X509 CRL-----\n")
 
-    with open(filename, "w") as crlFile:
-            crlFile.write(crl)
-
     crypto.load_crl(crypto.FILETYPE_PEM, crl)
+
+    with open(filename, "w") as crlFile:
+        crlFile.write(crl)
+
+    
 
 
 
