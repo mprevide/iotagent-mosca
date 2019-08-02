@@ -95,6 +95,8 @@ class Certificates {
             let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
+                //kill process
+                throw Error (`OpenSSL error ${err.toString()}`);
             } else {
                 if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
                     this.revokeSerialNumberSet = new Set();
@@ -152,6 +154,9 @@ class Certificates {
             } else {
                 logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
                 logger.debug(`HTTP response ERROR ${response}`, TAG);
+
+                //kill process
+                throw Error (`HTTP code ${response.status} to access ${url}`);
             }
         });
         logger.info(`... update CRL finish`, TAG);

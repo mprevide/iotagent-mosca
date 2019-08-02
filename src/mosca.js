@@ -280,12 +280,12 @@ class MqttBackend {
     // device identified in the clientId
     // TODO: the clientId must contain the tenant too!
     logger.debug(`Checking its certificates...`, TAG);
-      if (client.connection.stream.hasOwnProperty("TLSSocket")) {
+      if (client.connection.stream.getPeerCertificate()) {
           const clientCertificate = client.connection.stream.getPeerCertificate();
+
           if (!clientCertificate.hasOwnProperty("subject") ||
               !clientCertificate.subject.hasOwnProperty("CN") ||
               clientCertificate.subject.CN !== ids.device) {
-
               // reject client connection
               logger.debug(`... client certificate is invalid.`, TAG);
               logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
