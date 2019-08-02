@@ -1,5 +1,6 @@
 "use strict";
 const mosca = require("mosca");
+const tls = require("tls");
 const defaultConfig = require("./config");
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
