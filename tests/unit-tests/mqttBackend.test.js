@@ -47,11 +47,11 @@ describe("Mosca backend", () => {
 
     it("should register callbacks for mosca events", () => {
         const mqttBackend = new backend.MqttBackend("sample-agent");
-        mqttBackend.server = { 
-            authenticate : undefined,
-            authorizePublish : undefined,
-            authorizeSubscribe : undefined,
-            on : jest.fn()
+        mqttBackend.server = {
+            authenticate: undefined,
+            authorizePublish: undefined,
+            authorizeSubscribe: undefined,
+            on: jest.fn()
         };
         mqttBackend._checkAuthorization = jest.fn();
         mqttBackend.cache = { delete: jest.fn()};
@@ -60,15 +60,15 @@ describe("Mosca backend", () => {
         expect(mqttBackend.server.authenticate).toBeDefined();
         expect(mqttBackend.server.authorizePublish).toBeDefined();
         expect(mqttBackend.server.authorizeSubscribe).toBeDefined();
-        
+
         // Checking whether callbacks do the right thing
         mqttBackend.server.authorizePublish("sample-client", "sample-topic", "sample-payload", "sample-callback");
         expect(mqttBackend._checkAuthorization).toHaveBeenCalledWith("sample-client", "sample-topic", "attrs", "sample-callback");
-        
+
         mqttBackend.server.authorizeSubscribe("sample-client", "sample-topic", "sample-callback");
         expect(mqttBackend._checkAuthorization).toHaveBeenCalledWith("sample-client", "sample-topic", "config", "sample-callback");
-        
-        // Checking event registrations 
+
+        // Checking event registrations
         const eventRegistrations = mqttBackend.server.on.mock.calls;
         expect(eventRegistrations.length).toEqual(3);
 
@@ -119,6 +119,6 @@ describe("Mosca backend", () => {
         }
         mqttBackend._processMessage(samplePacket, sampleClient);
         expect(mqttBackend.agentCallbackInternal).toHaveBeenCalledWith("$SYS/Yada", samplePacket.payload);
-        
+
     });
 });
