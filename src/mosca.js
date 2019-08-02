@@ -179,7 +179,7 @@ class MqttBackend {
 
     // publish metrics topics
     if (topicType === '$SYS') {
-      const payloadSizeChecked = this._checkPayloadSize(payloadAsString, config.DojotToDevicePayloadSize);
+      const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.DojotToDevicePayloadSize);
 
       if (payloadSizeChecked) {
         this.agentCallbackInternal(packet.topic, packet.payload);
@@ -194,7 +194,7 @@ class MqttBackend {
       return;
     }
 
-    const payloadSizeChecked = this._checkPayloadSize(payloadAsString, config.deviceToDojotPayloadSize);
+    const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.deviceToDojotPayloadSize);
 
     if (!payloadSizeChecked) {
       logger.warn('Received Message too long', TAG);
