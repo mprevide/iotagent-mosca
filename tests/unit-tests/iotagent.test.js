@@ -43,19 +43,19 @@ describe("Mosca backend", () => {
     });
 
     it("Should build a MqttBackend instance with support for unsecure connections", () => {
-        const config = JSON.parse(JSON.stringify(defaultConfig));
-        config.allow_unsecured_mode = 'true';
+        // const config = JSON.parse(JSON.stringify(defaultConfig));
+        defaultConfig.allow_unsecured_mode = 'true';
 
-        const mqttBackend = new backend.MqttBackend("sample-agent", config);
+        const mqttBackend = new backend.MqttBackend("sample-agent", defaultConfig);
         expect(mqttBackend).toBeDefined();
 
         const serverArgs = mosca.Server.mock.calls[0][0];
         const mqttInterfaces = serverArgs.interfaces;
-        // expect(mqttInterfaces.length).toEqual(2);
+        expect(mqttInterfaces.length).toEqual(2);
         expect(mqttInterfaces[0].type).toEqual("mqtts");
         expect(mqttInterfaces[0].port).toEqual(8883);
-        // expect(mqttInterfaces[1].type).toEqual("mqtt");
-        // expect(mqttInterfaces[1].port).toEqual(1883);
+        expect(mqttInterfaces[1].type).toEqual("mqtt");
+        expect(mqttInterfaces[1].port).toEqual(1883);
     });
 
     it("Should register callbacks for mosca events", () => {

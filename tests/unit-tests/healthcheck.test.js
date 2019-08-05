@@ -8,7 +8,6 @@
  *
  */
 var HealthChecker = require('@dojot/healthcheck');
-// var endpoint = require('@dojot/healthcheck').getHTTPRouter;
 var pjson = require('../../package.json');
 const Agent = require("../../src/healthcheck").AgentHealthChecker;
 
@@ -37,7 +36,7 @@ describe("Testing healthCheck functions", () => {
     it("Should not throw an error", (done) => {
         const trigger = new HealthChecker.DataTrigger(agent.configHealth, agent.monitor);
         const memoryDiag = agent._memoryCollector(trigger);
-        // console.log(memoryDiag);
+
         expect(typeof memoryDiag).toEqual('number');
         expect(memoryDiag).toBeGreaterThan(0);
         done();
