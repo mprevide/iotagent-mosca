@@ -6,7 +6,7 @@
   "bin": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest tests/unit-tests/*.test.js --coverage --report=html",
+    "test": "jest tests/unit-tests/*.test.js --coverage --report=html && codecov",
     "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
   },
   "repository": {
@@ -35,11 +35,12 @@
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "jest": "^24.1.0",
     "assume": "^2.1.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
+    "codecov": "^3.5.0",
     "expect": "23.6.0",
+    "jest": "^24.1.0",
     "jsdoc": "3.5.5",
     "mocha": "^5.2.0",
     "sinon": "^6.1.4"
