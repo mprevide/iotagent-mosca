@@ -4,8 +4,8 @@ const Mosca = require("../../src/mosca");
 const client = require("../../src/moscaSetup").clientSetup;
 const packet = require("../../src/moscaSetup").packetSetup;
 const config = require("../../src/config");
-
 const agent = require("../../src/moscaSetup").agentSetup;
+
 
 const mosca = new Mosca.MqttBackend();
 
@@ -71,7 +71,7 @@ describe("Testing Mosca functions", () => {
 
 
     test("Should use unsecured mode", () => {
-        config.allow_unsecured_mode = 'true';
+        config.allow_unsecured_mode = true;
 
         let newMosca = new Mosca.MqttBackend(agent);
         console.log(newMosca.server.opts.interfaces[1]);

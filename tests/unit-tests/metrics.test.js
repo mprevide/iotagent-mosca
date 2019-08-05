@@ -12,9 +12,9 @@
 // const request = require("request");
 const app = require("../../src/app").app;
 const stopApp = require("../../src/app").stopApp;
+const moscaMestrics = require("../../src/metrics");
 
 const request = require("supertest");
-const moscaMestrics = require("../../src/metrics");
 
 //
 // Mocking dependencies

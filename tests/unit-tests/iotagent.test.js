@@ -44,7 +44,7 @@ describe("Mosca backend", () => {
 
     it("Should build a MqttBackend instance with support for unsecure connections", () => {
         // const config = JSON.parse(JSON.stringify(defaultConfig));
-        defaultConfig.allow_unsecured_mode = 'true';
+        defaultConfig.allow_unsecured_mode = true;
 
         const mqttBackend = new backend.MqttBackend("sample-agent", defaultConfig);
         expect(mqttBackend).toBeDefined();
