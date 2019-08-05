@@ -69,9 +69,9 @@ class Certificates {
      * @returns {string}
      * @private
      */
-    static _formatPEM(rawCRL) {
+    static _formatCRLPEM(rawCRL) {
         return `-----BEGIN X509 CRL-----\n${
-            Certificates._format(rawCRL)
+            Certificates._formatPEM(rawCRL)
             }-----END X509 CRL-----\n`;
     }
 
@@ -159,7 +159,7 @@ class Certificates {
             if (response.status === 200) {
                 logger.debug(`HTTP response ${response}`, TAG);
                 const {data: {CRL}} = response;
-                this.crlPEM = Certificates._formatPEM(CRL);
+                this.crlPEM = Certificates._formatCRLPEM(CRL);
                 this._updateRevokeSerialSet(this.crlPEM);
             } else {
                 logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
@@ -173,12 +173,12 @@ class Certificates {
     }
 
     /**
-     * CRL Formats for PEM Body
+     * Formats for PEM Body
      * @param rawCertificate
      * @returns {void | string | never}
      * @private
      */
-    static _format(rawCertificate) {
+    static _formatPEM(rawCertificate) {
         return rawCertificate
             .toString('base64')
             .match(/.{0,64}/g)
