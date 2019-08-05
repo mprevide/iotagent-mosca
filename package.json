@@ -6,7 +6,7 @@
   "bin": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest tests/unit-tests/*.test.js --coverage --report=html && codecov",
+    "test": "jest tests/unit-tests/certificates.test.js --coverage --report=html && codecov",
     "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
   },
   "repository": {
@@ -43,6 +43,7 @@
     "jest": "^24.1.0",
     "jsdoc": "3.5.5",
     "mocha": "^5.2.0",
+    "mock-fs": "^4.10.1",
     "sinon": "^6.1.4"
   },
   "jest": {
