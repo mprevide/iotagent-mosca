@@ -32,11 +32,11 @@ describe("Mosca backend", () => {
 
     it("should build a MqttBackend instance with support for unsecured connections", () => {
         const config = JSON.parse(JSON.stringify(defaultConfig));
-        config.allow_unsecured_mode = "true";
+        config.allow_unsecured_mode = true;
         const mqttBackend = new backend.MqttBackend("sample-agent", config);
         expect(mqttBackend).toBeDefined();
         const serverArgs = mosca.Server.mock.calls[0][0];
-        const mqttInterfaces = serverArgs.interfaces
+        const mqttInterfaces = serverArgs.interfaces;
         expect(mqttInterfaces.length).toEqual(2);
         expect(mqttInterfaces[0].type).toEqual("mqtts");
         expect(mqttInterfaces[0].port).toEqual(8883);
