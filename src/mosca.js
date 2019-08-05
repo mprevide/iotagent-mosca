@@ -145,6 +145,20 @@ class MqttBackend {
   }
 
   /**
+   * Check received payload size
+   *
+   * @param {obj} data data received *must be a string
+   * @param {Number} size number of bytes to compare
+   *
+   * @returns {boolean} true if data length is less or equal than size
+   */
+  _checkPayloadSize(data, size) {
+    const len = data.length;
+    logger.debug(`Received a message with ${len} bytes`, TAG);
+    return (data.length <= size);
+  }
+
+  /**
    * Callback to process received messages
    *
    * This should be used only by setting it as callback for "published" event
@@ -161,12 +175,29 @@ class MqttBackend {
     }
 
     const topicType = packet.topic.split('/')[0];
-      // publish metrics topics
+    const payloadAsString = packet.payload.toString();
+
+    // publish metrics topics
     if (topicType === '$SYS') {
-      this.agentCallbackInternal(packet.topic, packet.payload);
+      const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.DojotToDevicePayloadSize);
+
+      if (payloadSizeChecked) {
+        this.agentCallbackInternal(packet.topic, packet.payload);
+      }
+      else {
+        logger.warn('Received Message too long from dojot', TAG);
+      }
+
       return;
     } else if ((client === undefined) || (client === null)) {
       logger.debug(`No MQTT client was created. Bailing out.`, TAG);
+      return;
+    }
+
+    const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.deviceToDojotPayloadSize);
+
+    if (!payloadSizeChecked) {
+      logger.warn('Received Message too long', TAG);
       return;
     }
 

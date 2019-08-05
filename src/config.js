@@ -31,4 +31,7 @@ config.healthcheck = {
     }
 };
 
+config.deviceToDojotPayloadSize = process.env.DEV_TO_DOJOT_PAYLOAD_MAX_SIZE || 256000000;
+config.DojotToDevicePayloadSize = process.env.DOJOT_TO_DEV_PAYLOAD_MAX_SIZE || 256000000;
+
 module.exports = config;
