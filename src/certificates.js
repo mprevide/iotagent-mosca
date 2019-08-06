@@ -29,7 +29,7 @@ class Certificates {
      * @private
      */
     _initCRL() {
-        if (config.mosca_tls.crl && fs.exists(config.mosca_tls.crl)) {
+        if (config.mosca_tls.crl) {
             try {
                 this.crlPEM = fs.readFile(config.mosca_tls.crl);
             } catch (err) {

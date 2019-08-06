@@ -6,7 +6,7 @@
   "bin": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest --detectOpenHandles tests/unit-tests/certificates.test.js --coverage --report=html && codecov",
+    "test": "jest --detectOpenHandles tests/unit-tests/*.test.js --coverage --report=html && codecov",
     "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
   },
   "repository": {
@@ -36,7 +36,6 @@
   },
   "devDependencies": {
     "assume": "^2.1.0",
-    "axios-mock-adapter": "^1.17.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "codecov": "^3.5.0",
@@ -44,7 +43,6 @@
     "jest": "^24.1.0",
     "jsdoc": "3.5.5",
     "mocha": "^5.2.0",
-    "rewire": "^4.0.1",
     "sinon": "^6.1.4"
   },
   "jest": {
