@@ -169,7 +169,7 @@ class Certificates {
                     logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
                     logger.debug(`HTTP response ERROR ${response}`, TAG);
 
-                    //kill process
+
                     reject(new Error(`HTTP code ${response.status} to access ${url}`));
                 }
             }).catch(error => {

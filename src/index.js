@@ -36,6 +36,8 @@ try {
         logger.debug(`... Succeeded to cron to update CRL .`, TAG);
       }).catch(error => {
         logger.debug(`... Failed to cron to update CRL  (${error}).`, TAG);
+        //kill process
+        throw  error;
       });
     });
     jobUpdateCRL.start();
