@@ -40,7 +40,7 @@ class Certificates {
      * @private
      */
     _initCRL() {
-        if (config.mosca_tls.crl && fs.exists(config.mosca_tls.crl)) {
+        if (config.mosca_tls.crl /*&& fs.exists(config.mosca_tls.crl)*/) {
             try {
                 this.crlPEM = fs.readFile(config.mosca_tls.crl);
             } catch (err) {
@@ -51,8 +51,8 @@ class Certificates {
                 }
             }
         } else if (config.mosca_tls.crlUpdateTime) {
-                this.updateCRL();
-            }
+            this.updateCRL();
+        }
     }
 
     /**
@@ -92,7 +92,7 @@ class Certificates {
     _updateRevokeSerialSet(crlPEM) {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl(
-[
+            [
                 'crl',
                 '-in',
                 {
@@ -101,24 +101,34 @@ class Certificates {
                 },
                 '-text',
                 '-noout'
-                ],
-            (err, buffer) => {
+            ],
+            this._callbackOpenSSL()
+        );
+        logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
+    }
+
+    /**
+     *
+     * @returns {Function}
+     * @private
+     */
+    _callbackOpenSSL() {
+        return (err, buffer) => {
+            console.log('_callbackOpenSSL');
             let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
                 //kill process
                 throw Error(`OpenSSL error ${err.toString()}`);
             } else if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
-                    this.revokeSerialNumberSet = new Set();
-                    logger.debug(`No certificate revoked found.`, TAG);
-                } else {
-                    const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
-                    this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
-                    logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
-                }
-        }
-);
-        logger.debug(`Finish openssl parse CRL to add Revoke Serial Numbers `, TAG);
+                this.revokeSerialNumberSet = new Set();
+                logger.debug(`No certificate revoked found.`, TAG);
+            } else {
+                const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
+                this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
+                logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
+            }
+        };
     }
 
     /**
@@ -151,25 +161,31 @@ class Certificates {
         logger.info(`Starting update CRL...`, TAG);
         const {pkiApiUrl, caName} = config.mosca_tls;
         const url = `${pkiApiUrl}/ca/${caName}/crl?update=true`;
-        axios({
-            method: 'GET',
-            httpHeader,
-            url: url,
-        }).then(response => {
-            if (response.status === 200) {
-                logger.debug(`HTTP response ${response}`, TAG);
-                const {data: {CRL}} = response;
-                this.crlPEM = Certificates._formatCRLPEM(CRL);
-                this._updateRevokeSerialSet(this.crlPEM);
-            } else {
-                logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
-                logger.debug(`HTTP response ERROR ${response}`, TAG);
+        return new Promise((resolve, reject) => {
+            axios({
+                method: 'GET',
+                httpHeader,
+                url: url,
+            }).then(response => {
+                if (response.status === 200) {
+                    logger.debug(`HTTP response ${response}`, TAG);
+                    const {data: {CRL}} = response;
+                    this.crlPEM = Certificates._formatCRLPEM(CRL);
+                    this._updateRevokeSerialSet(this.crlPEM);
+                    resolve();
+                } else {
+                    logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
+                    logger.debug(`HTTP response ERROR ${response}`, TAG);
 
-                //kill process
-                throw Error(`HTTP code ${response.status} to access ${url}`);
-            }
+                    //kill process
+                    reject(new Error(`HTTP code ${response.status} to access ${url}`));
+                }
+            }).catch(error => {
+                logger.debug(`Failed to execute http request (${error}).`);
+                reject(new Error(`Internal error while execution http request.`));
+            });
+            logger.info(`... update CRL finish`, TAG);
         });
-        logger.info(`... update CRL finish`, TAG);
     }
 
     /**

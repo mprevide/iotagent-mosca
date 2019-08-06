@@ -32,7 +32,11 @@ try {
   if(config.mosca_tls.crlUpdateTime) {
     logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
     const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function () {
-      Certificates.updateCRL();
+      Certificates.updateCRL().then(() => {
+        logger.debug(`... Succeeded to cron to update CRL .`, TAG);
+      }).catch(error => {
+        logger.debug(`... Failed to cron to update CRL  (${error}).`, TAG);
+      });
     });
     jobUpdateCRL.start();
     logger.info(`... cron to update CRL every ${config.mosca_tls.crlUpdateTime} started`, TAG);
