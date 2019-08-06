@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 "use strict";
 
 /**
@@ -32,7 +33,7 @@ describe("Mosca backend", () => {
 
     it("should build a MqttBackend instance with support for unsecured connections", () => {
         const config = JSON.parse(JSON.stringify(defaultConfig));
-        config.allow_unsecured_mode = "true";
+        config.allow_unsecured_mode = true;
         const mqttBackend = new backend.MqttBackend("sample-agent", config);
         expect(mqttBackend).toBeDefined();
         const serverArgs = mosca.Server.mock.calls[0][0];
