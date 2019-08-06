@@ -1,17 +1,18 @@
 "use strict";
 const mosca = require("mosca");
-const config = require("./config");
+const defaultConfig = require("./config");
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
 
 const TAG = { filename: "mqtt-backend"};
-const logLevel = config.logger.level;
+const logLevel = defaultConfig.logger.level;
 
 /**
  * Class responsible for MQTT backend operations.
  */
 class MqttBackend {
-  constructor(agent) {
+  constructor(agent, userConfig) {
+    const config = userConfig || defaultConfig;
     // Mosca Settings
     var moscaInterfaces = [];
 
@@ -30,7 +31,7 @@ class MqttBackend {
     moscaInterfaces.push(mqtts);
 
     // optional
-    if (config.allow_unsecured_mode === 'true') {
+    if (config.allow_unsecured_mode === true) {
       var mqtt = {
         type: "mqtt",
         port: 1883
@@ -120,12 +121,12 @@ class MqttBackend {
     const boundProcessMessage = this._processMessage.bind(this);
     this.server.on("published", boundProcessMessage);
     // Fired when a client connects to mosca server
-    this.server.on('clientConnected', (client) => {
+    this.server.on("clientConnected", (client) => {
       logger.info(`Client connected: ${client.id}`, TAG);
     });
 
     // Fired when a client disconnects from mosca server
-    this.server.on('clientDisconnected', (client) => {
+    this.server.on("clientDisconnected", (client) => {
       logger.info(`Client disconnected: ${client.id}`, TAG);
       this.cache.delete(client.id);
     });
@@ -141,6 +142,20 @@ class MqttBackend {
    */
   _getTopicParameter(topic, index) {
     return topic.split('/')[index];
+  }
+
+  /**
+   * Check received payload size
+   *
+   * @param {obj} data data received *must be a string
+   * @param {Number} size number of bytes to compare
+   *
+   * @returns {boolean} true if data length is less or equal than size
+   */
+  _checkPayloadSize(data, size) {
+    const len = data.length;
+    logger.debug(`Received a message with ${len} bytes`, TAG);
+    return (data.length <= size);
   }
 
   /**
@@ -160,12 +175,29 @@ class MqttBackend {
     }
 
     const topicType = packet.topic.split('/')[0];
-      // publish metrics topics
+    const payloadAsString = packet.payload.toString();
+
+    // publish metrics topics
     if (topicType === '$SYS') {
-      this.agentCallbackInternal(packet.topic, packet.payload);
+      const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.DojotToDevicePayloadSize);
+
+      if (payloadSizeChecked) {
+        this.agentCallbackInternal(packet.topic, packet.payload);
+      }
+      else {
+        logger.warn('Received Message too long from dojot', TAG);
+      }
+
       return;
     } else if ((client === undefined) || (client === null)) {
       logger.debug(`No MQTT client was created. Bailing out.`, TAG);
+      return;
+    }
+
+    const payloadSizeChecked = this._checkPayloadSize(payloadAsString, defaultConfig.deviceToDojotPayloadSize);
+
+    if (!payloadSizeChecked) {
+      logger.warn('Received Message too long', TAG);
       return;
     }
 
@@ -348,7 +380,7 @@ class MqttBackend {
    * @param {function} callback The callback to be executed when the decision is
    * made
    */
-  _checkAuthorization(client, topic, tag, callback) {
+  async _checkAuthorization(client, topic, tag, callback) {
     logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`, TAG);
 
     logger.debug(`Retrieving cache entry...`, TAG);
@@ -388,7 +420,7 @@ class MqttBackend {
       logger.warn(`This behavior will be deprecated in the future.`, TAG);
       logger.warn(`Checking whether this device exists in dojot...`, TAG);
       // Device exists in dojot
-      this.agent.getDevice(ids.device, ids.tenant)
+      await this.agent.getDevice(ids.device, ids.tenant)
         .then(() => {
           logger.warn(`... device exists in dojot.`, TAG);
           logger.warn(`Adding it to the cache...`, TAG);

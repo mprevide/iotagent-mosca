@@ -1,11 +1,15 @@
 'use strict';
 
+/* private */
+const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
+
+/* public */
 var config = {};
 
 config.backend_host = process.env.BACKEND_HOST || 'mosca-redis';
 config.backend_port = process.env.BACKEND_PORT || 6379;
 
-config.allow_unsecured_mode = process.env.ALLOW_UNSECURED_MODE || 'false';
+config.allow_unsecured_mode = unsecured_mode(process.env.ALLOW_UNSECURED_MODE);
 
 config.logger = {
     level: process.env.LOG_LEVEL || 'info'
@@ -26,5 +30,8 @@ config.healthcheck = {
         kafka: process.env.HC_KAFKA_TIMEOUT || 30000
     }
 };
+
+config.deviceToDojotPayloadSize = process.env.DEV_TO_DOJOT_PAYLOAD_MAX_SIZE || 256000000;
+config.DojotToDevicePayloadSize = process.env.DOJOT_TO_DEV_PAYLOAD_MAX_SIZE || 256000000;
 
 module.exports = config;

@@ -17,7 +17,7 @@ def generateKeys():
     if not os.path.isfile(conf.certsDir + 'mosca.key'):
         certUtils.generatePrivateKey(conf.certsDir + "/mosca.key",
                                      conf.keyLength)
-        print ("mosca key-pair created")
+        print("mosca key-pair created")
 
 
 def generateCSR():
@@ -25,7 +25,7 @@ def generateCSR():
         certUtils.generateCSR(CName='mosca',
                               privateKeyFile=conf.certsDir + "/mosca.key",
                               csrFileName=conf.certsDir + "/mosca.csr",
-                              dnsname=['mqtt', 'mosca', 'localhost'])
+                              dnsname=conf.subjectAltNameDnsList)
 
 
 def askCertSign():
@@ -55,7 +55,7 @@ def retrieveCAChain():
             certUtils.saveCRT(conf.certsDir + "/ca.crt", rawCrt)
             print("CA certificates retrieved")
         except KeyError:
-            print ("Invalid answer returned from EJBCA.")
+            print("Invalid answer returned from EJBCA.")
             exit(-1)
 
 
@@ -65,7 +65,7 @@ def retrieveCRL():
             rawCRL = certUtils.retrieveCACRL(conf.EJBCA_API_URL, conf.CAName)
             certUtils.saveCRL(conf.certsDir + "/ca.crl", rawCRL)
         except KeyError:
-            print ("Invalid answer returned from EJBCA.")
+            print("Invalid answer returned from EJBCA.")
             exit(-1)
         except crypto.Error:
             print("Could not decode retrieved CRL")
