@@ -104,4 +104,4 @@ docs/
 build/
 
 # Jest coverage files
-coverage/
+coverage/*
