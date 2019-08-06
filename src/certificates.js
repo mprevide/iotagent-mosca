@@ -7,17 +7,6 @@ const config = require("./config");
 const TAG = {filename: "certificates"};
 
 /**
- * Header for axios request
- * @type {{headers: {Accept: string, "content-type": string}}}
- */
-const httpHeader = {
-    headers: {
-        'content-type': 'application/json',
-        'Accept': 'application/json'
-    }
-};
-
-/**
  * Class responsible for managing certificates,
  * currently CRL only, but intended for all certificates.
  */
@@ -164,7 +153,10 @@ class Certificates {
             logger.info(`Starting update CRL...`, TAG);
             axios({
                 method: 'GET',
-                httpHeader,
+                headers: {
+                    'content-type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 url: url,
             }).then(response => {
                 if (response.status === 200) {
