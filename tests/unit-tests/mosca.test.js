@@ -1,10 +1,10 @@
 /* eslint-disable no-undef */
 
 const Mosca = require("../../src/mosca");
-const client = require("../../src/moscaSetup").clientSetup;
-const packet = require("../../src/moscaSetup").packetSetup;
+const client = require("../moscaSetup").clientSetup;
+const packet = require("../moscaSetup").packetSetup;
 const config = require("../../src/config");
-const agent = require("../../src/moscaSetup").agentSetup;
+const agent = require("../moscaSetup").agentSetup;
 
 
 const mosca = new Mosca.MqttBackend();
