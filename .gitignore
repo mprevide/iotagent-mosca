@@ -102,3 +102,6 @@ typings/
 
 docs/
 build/
+
+# Jest coverage files
+coverage/
