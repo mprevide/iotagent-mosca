@@ -152,28 +152,20 @@ const crlWithRevoke = {
 
 };
 
-const rawCRL = "MIICrzCBmAIBATANBgkqhkiG9w0BAQsFADA0MREwDwYDVQQDDAhJT1RtaWRDQTESMBAGA1UECgwJRUpCQ0EgSU9UMQswCQYDVQQGEwJTRRcNMTkwNzMwMTYzOTQ1WhcNMTkwNzMxMTYzOTQ1WqAwMC4wHwYDVR0jBBgwFoAUhXYIo9O/yCCudFLVc6O5PZbHBu4wCwYDVR0UBAQCAgLjMA0GCSqGSIb3DQEBCwUAA4ICAQCsSbJOSUB941Co4bqaxOCiXSaPDCvzt1MnFdJwgwuWxAkJqwjNQgo+B16lwlSajAPaijAnL1Xs8TMaBkHfbBzOHBVHjYE+1NWpGQY6ztxX9f+4DqFODbd2+FdjoOuyPA43VTF+L3ephSXb1iy2PutrKrTbz5S00/VAZr6dNyzHI8nl0KwYxHTSQTSRjWOoeW+EYeQYhHNpzj2Fh3qIj+A33kiDb0qp7WiWdKAz8mlbv/yXuo717mq50iPxbOOrSYG+5Xcd1PIU2Qh3YTiHu/lW6VF3nwL9m7forTWC+01ugXfoIuWx3EbUzdJRK4qgQLo7s+PeRreYqn8XIKP/ryVZ1YQNBBqqK+1iU1kAdn2jAqetPq+8B/Jjx71dnYUt+4SuCEk400fDs6Fc84KMpup434dRDIRx6WwQZoZeVoD9z9cmD0+wvW1Kmv3GnWhcQcAkkUTghwmvRn497RWTd17yHGM7BtTT/58HqQ6TWnLt3xRMQSCFfFRCPXhMqfhH6ejyU4xzGZm03AOl1IDSDXgZ3TeT26vZO0xMSMXJ881Hf6Qnk14I+YQtXf3F4JzNcV0Qcu6++I88i8ms7cy3+W/YdByC+jX1m5airrqsKYuq40CzpQULk00dPTFWGca+5PCveCAEzBdIfpQNVWKFnek7XpwM7SA/fik45j1H63gcfQ==";
+const CRL = {
+    raw: "MIICrzCBmAIBATANBgkqhkiG9w0BAQsFADA0MREwDwYDVQQDDAhJT1RtaWRDQTESMBAGA1UECgwJRUpCQ0EgSU9UMQswCQYDVQQGEwJTRRcNMTkwNzMwMTYzOTQ1WhcNMTkwNzMxMTYzOTQ1WqAwMC4wHwYDVR0jBBgwFoAUhXYIo9O/yCCudFLVc6O5PZbHBu4wCwYDVR0UBAQCAgLjMA0GCSqGSIb3DQEBCwUAA4ICAQCsSbJOSUB941Co4bqaxOCiXSaPDCvzt1MnFdJwgwuWxAkJqwjNQgo+B16lwlSajAPaijAnL1Xs8TMaBkHfbBzOHBVHjYE+1NWpGQY6ztxX9f+4DqFODbd2+FdjoOuyPA43VTF+L3ephSXb1iy2PutrKrTbz5S00/VAZr6dNyzHI8nl0KwYxHTSQTSRjWOoeW+EYeQYhHNpzj2Fh3qIj+A33kiDb0qp7WiWdKAz8mlbv/yXuo717mq50iPxbOOrSYG+5Xcd1PIU2Qh3YTiHu/lW6VF3nwL9m7forTWC+01ugXfoIuWx3EbUzdJRK4qgQLo7s+PeRreYqn8XIKP/ryVZ1YQNBBqqK+1iU1kAdn2jAqetPq+8B/Jjx71dnYUt+4SuCEk400fDs6Fc84KMpup434dRDIRx6WwQZoZeVoD9z9cmD0+wvW1Kmv3GnWhcQcAkkUTghwmvRn497RWTd17yHGM7BtTT/58HqQ6TWnLt3xRMQSCFfFRCPXhMqfhH6ejyU4xzGZm03AOl1IDSDXgZ3TeT26vZO0xMSMXJ881Hf6Qnk14I+YQtXf3F4JzNcV0Qcu6++I88i8ms7cy3+W/YdByC+jX1m5airrqsKYuq40CzpQULk00dPTFWGca+5PCveCAEzBdIfpQNVWKFnek7XpwM7SA/fik45j1H63gcfQ==",
+    PEM: '-----BEGIN X509 CRL-----\nMIICrzCBmAIBATANBgkqhkiG9w0BAQsFADA0MREwDwYDVQQDDAhJT1RtaWRDQTES\nMBAGA1UECgwJRUpCQ0EgSU9UMQswCQYDVQQGEwJTRRcNMTkwNzMwMTYzOTQ1WhcN\nMTkwNzMxMTYzOTQ1WqAwMC4wHwYDVR0jBBgwFoAUhXYIo9O/yCCudFLVc6O5PZbH\nBu4wCwYDVR0UBAQCAgLjMA0GCSqGSIb3DQEBCwUAA4ICAQCsSbJOSUB941Co4bqa\nxOCiXSaPDCvzt1MnFdJwgwuWxAkJqwjNQgo+B16lwlSajAPaijAnL1Xs8TMaBkHf\nbBzOHBVHjYE+1NWpGQY6ztxX9f+4DqFODbd2+FdjoOuyPA43VTF+L3ephSXb1iy2\nPutrKrTbz5S00/VAZr6dNyzHI8nl0KwYxHTSQTSRjWOoeW+EYeQYhHNpzj2Fh3qI\nj+A33kiDb0qp7WiWdKAz8mlbv/yXuo717mq50iPxbOOrSYG+5Xcd1PIU2Qh3YTiH\nu/lW6VF3nwL9m7forTWC+01ugXfoIuWx3EbUzdJRK4qgQLo7s+PeRreYqn8XIKP/\nryVZ1YQNBBqqK+1iU1kAdn2jAqetPq+8B/Jjx71dnYUt+4SuCEk400fDs6Fc84KM\npup434dRDIRx6WwQZoZeVoD9z9cmD0+wvW1Kmv3GnWhcQcAkkUTghwmvRn497RWT\nd17yHGM7BtTT/58HqQ6TWnLt3xRMQSCFfFRCPXhMqfhH6ejyU4xzGZm03AOl1IDS\nDXgZ3TeT26vZO0xMSMXJ881Hf6Qnk14I+YQtXf3F4JzNcV0Qcu6++I88i8ms7cy3\n+W/YdByC+jX1m5airrqsKYuq40CzpQULk00dPTFWGca+5PCveCAEzBdIfpQNVWKF\nnek7XpwM7SA/fik45j1H63gcfQ==\n-----END X509 CRL-----\n'
+};
 
 jest.mock('fs');
 jest.mock("axios");
-jest.useFakeTimers();
 jest.mock("openssl-nodejs");
+jest.useFakeTimers();
 
 const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': crlNoRevokeRevoke.PEM};
 const NO_FOLDER_CONFIG = {};
 
 describe("Certificates", () => {
-
-    beforeAll(() => {
-
-    });
-
-    beforeEach(() => {
-        jest.resetModules();
-        jest.resetAllMocks();
-
-
-    });
 
     afterEach(() => {
         axios.mockReset();
@@ -183,6 +175,18 @@ describe("Certificates", () => {
         axios.mockRestore();
     });
 
+    it("should build a Cerficiates", () => {
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
+        const Certificates = require('../../src/certificates.js');
+        expect(Certificates).toBeDefined();
+        expect(Certificates.getCRLPEM()).toBe(crlNoRevokeRevoke.PEM);
+    });
+
+    it("should build a Cerficiates", () => {
+        require("fs").__createMockFiles(NO_FOLDER_CONFIG);
+        const Certificates = require('../../src/certificates.js');
+        expect(Certificates).toBeDefined();
+    });
 
     it("should build a Cerficiates", () => {
         require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
@@ -212,35 +216,34 @@ describe("Certificates", () => {
         expect(Certificates).toBeDefined();
 
         const testCallBack = Certificates._callbackOpenSSL();
-        console.log(testCallBack);
-        const promi = testCallBack([], Buffer.from(crlNoRevokeRevoke.decode, 'ascii'));
-        console.log(promi);
+        testCallBack([], Buffer.from(crlNoRevokeRevoke.decode, 'ascii'));
         expect(Certificates.revokeSerialNumberSet.size).toBe(0);
     });
 
     it("_updateCRL", async (done) => {
         const Certificates = require('../../src/certificates.js');
         expect(Certificates).toBeDefined();
+        Certificates.crlPEM = null;
 
-        axios.mockReturnValue(Promise.resolve({CRL: `${rawCRL}`}));
+        axios.mockReturnValue(Promise.resolve({status: 200, data: {CRL: `${CRL.raw}`}}));
 
         const {pkiApiUrl, caName} = config.mosca_tls;
         const url = `${pkiApiUrl}/ca/${caName}/crl?update=true`;
 
-        const updateCRLPromise = await Certificates.updateCRL();
+        const updateCRLPromise = Certificates.updateCRL();
 
-        updateCRLPromise.then((resp) => {
-            console.log('test', resp);
+        updateCRLPromise.then(() => {
             expect(axios).toBeCalledWith({
                 url: url,
-                method: "get",
+                method: "GET",
                 headers: expect.anything(),
             });
+            jest.useFakeTimers();
+            expect(Certificates.getCRLPEM()).toBe(CRL.PEM);
             done();
         }).catch((error) => {
-            //done(`should not raise an error: ${error}`);
-            console.log('catch', error);
-            done();
+            jest.useFakeTimers();
+            done(`should not raise an error: ${error}`);
         });
 
     });
