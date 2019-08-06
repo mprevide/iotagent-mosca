@@ -114,7 +114,6 @@ class Certificates {
      */
     _callbackOpenSSL() {
         return (err, buffer) => {
-            console.log('_callbackOpenSSL');
             let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
@@ -158,10 +157,11 @@ class Certificates {
      * Updates CRL from PKI
      */
     updateCRL() {
-        logger.info(`Starting update CRL...`, TAG);
+
         const {pkiApiUrl, caName} = config.mosca_tls;
         const url = `${pkiApiUrl}/ca/${caName}/crl?update=true`;
         return new Promise((resolve, reject) => {
+            logger.info(`Starting update CRL...`, TAG);
             axios({
                 method: 'GET',
                 httpHeader,
@@ -182,7 +182,7 @@ class Certificates {
                 }
             }).catch(error => {
                 logger.debug(`Failed to execute http request (${error}).`);
-                reject(new Error(`Internal error while execution http request.`));
+                reject(error);
             });
             logger.info(`... update CRL finish`, TAG);
         });
