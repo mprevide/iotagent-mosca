@@ -12,7 +12,7 @@ const clientSetup = {
         }
     },
     close() {
-        return true
+        return true;
     }
 }
 
@@ -35,7 +35,10 @@ const agentSetup = {
             messagesLoad15min: null
         }
     },
-}
+    getDevice(device, tenant) {
+        return Promise.resolve();
+    }
+};
 
 module.exports = {
     clientSetup,

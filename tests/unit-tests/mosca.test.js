@@ -6,12 +6,18 @@ const packet = require("../moscaSetup").packetSetup;
 const config = require("../../src/config");
 const agent = require("../moscaSetup").agentSetup;
 
+const mosca = new Mosca.MqttBackend(agent);
 
-const mosca = new Mosca.MqttBackend();
+jest.mock('fs');
+
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
 
 describe("Testing Mosca functions", () => {
 
-    beforeEach(() => jest.resetModules());
+    beforeEach(() => {
+        jest.resetModules();
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
+    });
 
     test("Should define the attribute agentCallback as the string passed as argument", () => {
         mosca.onMessage();
