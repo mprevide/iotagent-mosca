@@ -28,22 +28,22 @@
     "@dojot/dojot-module-logger": "0.0.1-alpha.5",
     "@dojot/healthcheck": "^0.0.1-alpha",
     "@dojot/iotagent-nodejs": "^2.1.0-beta",
-    "codecov": "^3.5.0",
     "express": "4.16.3",
     "mosca": "^2.8.0",
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "jest": "^24.8.0",
-    "moxios": "^0.4.0",
-    "supertest": "^4.0.2",
     "assume": "^2.1.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
+    "codecov": "^3.5.0",
     "expect": "23.6.0",
+    "jest": "^24.8.0",
     "jsdoc": "3.5.5",
     "mocha": "^5.2.0",
-    "sinon": "^6.1.4"
+    "moxios": "^0.4.0",
+    "sinon": "^6.1.4",
+    "supertest": "^4.0.2"
   },
   "jest": {
     "coverageDirectory": "./coverage/",
