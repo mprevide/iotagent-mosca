@@ -28,6 +28,7 @@
     "@dojot/dojot-module-logger": "0.0.1-alpha.5",
     "@dojot/healthcheck": "^0.0.1-alpha",
     "@dojot/iotagent-nodejs": "^2.1.0-beta",
+    "codecov": "^3.5.0",
     "express": "4.16.3",
     "mosca": "^2.8.0",
     "redis": "^2.8.0"
