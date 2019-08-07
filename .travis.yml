@@ -9,8 +9,10 @@ node_js:
 script:
   - 'docker build -t ${TRAVIS_REPO_SLUG} .'
   - npm test
+  - codecov
 install:
   - npm install
+  - npm install -g codecov
 after_success:
   - travis/publish.sh
   - travis/deploy-gh-pages.sh
