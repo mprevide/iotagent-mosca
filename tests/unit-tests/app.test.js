@@ -44,14 +44,6 @@ describe("Testing app functions", () => {
     });
 
     it("Test initApp", (done) => {
-        // App.initApp = jest.fn(App.initApp);
-        // const metricStore = new moscaMestrics.Metrics();
-        // const healthcheck = new HealthChecker();
-
-        // App.initApp(healthcheck, metricStore);
-        // expect(App.initApp).toBeCalled();
-        // expect(App.initApp).toBeTruthy();
-
         // spy the calls to add
         expect(App.stopApp()).toBeFalsy();
         done();
