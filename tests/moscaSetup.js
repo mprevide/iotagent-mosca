@@ -35,7 +35,7 @@ const agentSetup = {
             messagesLoad15min: null
         }
     },
-    getDevice(device, tenant) {
+    getDevice() {
         return Promise.resolve();
     }
 };
