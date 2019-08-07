@@ -177,22 +177,9 @@ describe("Certificates", () => {
 
     it("should build a Cerficiates", () => {
         require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
-        const Certificates = require('../../src/certificates.js');
-        expect(Certificates).toBeDefined();
-        expect(Certificates.getCRLPEM()).toBe(crlNoRevokeRevoke.PEM);
-    });
-
-    it("should build a Cerficiates", () => {
-        require("fs").__createMockFiles(NO_FOLDER_CONFIG);
-        const Certificates = require('../../src/certificates.js');
-        expect(Certificates).toBeDefined();
-    });
-
-    it("should build a Cerficiates", () => {
-        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
-        const Certificates = require('../../src/certificates.js');
-        expect(Certificates).toBeDefined();
-        expect(Certificates.getCRLPEM()).toBe(crlNoRevokeRevoke.PEM);
+        const Certificat = require('../../src/certificates.js');
+        expect(Certificat).toBeDefined();
+        expect(Certificat.getCRLPEM()).toBe(crlNoRevokeRevoke.PEM);
     });
 
     it("_callbackOpenSSL with revoked", () => {
