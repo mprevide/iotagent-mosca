@@ -29,6 +29,7 @@ function get(url, body) {
 }
 
 describe("Testing metrics functions", () => {
+    beforeEach(() => jest.resetModules());
     afterEach(() => {
         stopApp();
     });

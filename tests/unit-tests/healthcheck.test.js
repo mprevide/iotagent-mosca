@@ -16,6 +16,9 @@ const Agent = require("../../src/healthcheck").AgentHealthChecker;
 //
 
 describe("Testing healthCheck functions", () => {
+
+    beforeEach(() => jest.resetModules());
+
     const agent = new Agent();
     agent.configHealth = {
         description: "IoT agent - MQTT",

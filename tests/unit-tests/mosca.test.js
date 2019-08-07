@@ -10,6 +10,9 @@ const agent = require("../moscaSetup").agentSetup;
 const mosca = new Mosca.MqttBackend();
 
 describe("Testing Mosca functions", () => {
+
+    beforeEach(() => jest.resetModules());
+
     test("Should define the attribute agentCallback as the string passed as argument", () => {
         mosca.onMessage();
         expect(mosca.agentCallback).toBeUndefined();

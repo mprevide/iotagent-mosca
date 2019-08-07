@@ -28,8 +28,8 @@ jest.mock("@dojot/iotagent-nodejs");
 describe("Mosca backend", () => {
     beforeEach(() => {
         mosca.Server.mockClear();
+        jest.resetModules();
     });
-
     afterEach(() => {
         mosca.Server.mockReset();
     });
