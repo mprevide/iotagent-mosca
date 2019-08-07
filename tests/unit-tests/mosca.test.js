@@ -44,6 +44,15 @@ describe("Testing Mosca functions", () => {
             expect(callback).toBeNull();
             done();
         });
+
+        newClient = {...client};
+        newClient.id = '';
+        delete newClient.connection.stream.TLSSocket;
+
+        mosca.authenticate(newClient, 'admin', 'admin', (callback) => {
+            expect(callback).toBeNull();
+            done();
+        });
     });
 
     test("Should split a string passed as first argument and return a debug message", () => {
@@ -67,6 +76,13 @@ describe("Testing Mosca functions", () => {
             expect(callback).toBeFalsy();
             done();
         });
+
+        newClient = {...client};
+        newClient.id = '';
+        mosca._checkAuthorization(newClient, '/tenant/98787de/attrs', 'temperature', (callback) => {
+            expect(callback).toBeUndefined();
+            done();
+        });
     });
 
 
@@ -74,7 +90,7 @@ describe("Testing Mosca functions", () => {
         config.allow_unsecured_mode = true;
 
         let newMosca = new Mosca.MqttBackend(agent);
-        console.log(newMosca.server.opts.interfaces[1]);
+        // console.log(newMosca.server.opts.interfaces[1]);
 
         expect(newMosca.server.opts.interfaces[1]).toBeDefined();
         expect(newMosca.server.opts.interfaces.length).toEqual(2);

@@ -9,14 +9,21 @@
  * - mosca
  */
 
+// var Agent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = require("mosca");
 const backend = require("../../src/mosca");
+var Agent = require('@dojot/iotagent-nodejs').IoTAgent;
+const IoTAgent = require("../../src/iotagent").IoTAgent;
 const defaultConfig = require("../../src/config");
+const HealthChecker = require("../../src/healthcheck").AgentHealthChecker;
+const Metrics = require("../../src/metrics").Metrics;
+const moscaSetup = require("../moscaSetup");
 
 //
 // Mocking dependencies
 //
 jest.mock("mosca");
+jest.mock("@dojot/iotagent-nodejs");
 
 describe("Mosca backend", () => {
     beforeEach(() => {
@@ -33,7 +40,9 @@ describe("Mosca backend", () => {
 
     it("Should build a MqttBackend instance", () => {
         const mqttBackend = new backend.MqttBackend("sample-agent");
+        const iotagent = new IoTAgent();
         expect(mqttBackend).toBeDefined();
+        expect(iotagent).toBeDefined();
 
         const serverArgs = mosca.Server.mock.calls[0][0];
         const mqttInterfaces = serverArgs.interfaces;
@@ -131,21 +140,98 @@ describe("Mosca backend", () => {
     it("Should process internal messages properly", () => {
         //As _processMessages is one entrypoint for data, it will be
         //tested (even if it is a internal function)
-        const mqttBackend = new backend.MqttBackend("sample-agent");
-        mqttBackend.agentCallback = jest.fn();
-        mqttBackend.agentCallbackInternal = jest.fn();
+        const iotagent = new IoTAgent();
+        iotagent.agent = new Agent();
+        iotagent.mqttBackend = new backend.MqttBackend(iotagent.agent);
+        iotagent.metricsStore = new Metrics();
 
         const samplePacket = {
-            topic: "$SYS/Yoda",
+            topic: "$SYS/Yoda/",
             payload: { toString: () => "sample-payload" }
         }
 
-        const sampleClient = {
-            id: "tenant:device"
-        }
+        expect(iotagent).toBeDefined();
+        expect(iotagent.mqttBackend).toBeDefined();
+        expect(iotagent.getTopicParameter(samplePacket.topic, 1)).toEqual('Yoda');
+        expect(iotagent.getTopicParameter()).toBeUndefined();
+        expect(iotagent.getTopicParameter('topic')).toEqual('topic');
 
-        mqttBackend._processMessage(samplePacket, sampleClient);
-        expect(mqttBackend.agentCallbackInternal).toHaveBeenCalledWith("$SYS/Yoda", samplePacket.payload);
+        samplePacket.topic = '$SYS/topic/clients/connected';
+        samplePacket.payload = '100';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.connectedClients).toEqual('100');
+
+        samplePacket.topic = '$SYS/topic/load/connections/1min';
+        samplePacket.payload = '1';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.connectionsLoad1min).toEqual('1');
+
+        samplePacket.topic = '$SYS/topic/load/connections/5min';
+        samplePacket.payload = '5';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.connectionsLoad5min).toEqual('5');
+
+        samplePacket.topic = '$SYS/topic/load/connections/15min';
+        samplePacket.payload = '15';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.connectionsLoad15min).toEqual('15');
+
+        samplePacket.topic = '$SYS/topic/load/publish/.../1min';
+        samplePacket.payload = '1';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.messagesLoad1min).toEqual('1');
+
+        samplePacket.topic = '$SYS/topic/load/publish/.../5min';
+        samplePacket.payload = '5';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.messagesLoad5min).toEqual('5');
+
+        samplePacket.topic = '$SYS/topic/load/publish/.../15min';
+        samplePacket.payload = '15';
+
+        iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
+        expect(iotagent.metricsStore.lastMetricsInfo.messagesLoad15min).toEqual('15');
+    });
+
+    it("Should process internal messages properly", () => {
+        const iotagent = new IoTAgent();
+        const healthcheck = new HealthChecker();
+        iotagent.agent = new Agent();
+        iotagent.mqttBackend = new backend.MqttBackend(iotagent.agent);
+        iotagent.metricsStore = new Metrics();
+
+        iotagent.initHealthCheck(healthcheck.healthChecker);
+        expect(iotagent.messageMonitor.monitor).toBeDefined();
+        // expect(iotagent._registerCallbacks()).toBeTruthy();
+
+        const data = {
+            timestamp: 10294384078
+        };
+
+        iotagent._processMessage('admin', 'uu6asd', data);
+        expect(iotagent.messageMonitor.value).toBeGreaterThan(0);
+
+        data.timestamp = undefined;
+
+        expect(iotagent._generateMetadata(data)).toEqual({});
+    });
+
+    it("Should process internal messages properly", () => {
+        const iotagent = new IoTAgent();
+
+        const event = {
+            data: {
+                id: 235,
+            }
+        };
+
+        expect(iotagent._processDeviceRemoval('admin', event)).toBeUndefined();
     });
 
 });
