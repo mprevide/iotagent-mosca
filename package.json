@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "jest tests/unit-tests/*.test.js --detectOpenHandles --coverage && codecov",
+    "test": "jest tests/unit-tests/*.test.js --detectOpenHandles --coverage",
     "start": "node src/index.js",
     "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
   },
@@ -36,7 +36,6 @@
     "assume": "^2.1.0",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
-    "codecov": "^3.5.0",
     "expect": "23.6.0",
     "jest": "^24.8.0",
     "jsdoc": "3.5.5",
