@@ -10,10 +10,6 @@ from OpenSSL import crypto
 # the following functions are related to file manipulation
 # these functions  may throw crypto.Error
 def saveCRL(filename, rawCRL):
-    #crl = ("-----BEGIN X509 CRL-----\n"
-    #       + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL).strip()
-    #       + "\n-----END X509 CRL-----\n")
-    #https://stackoverflow.com/questions/2657693/insert-a-newline-character-every-64-characters-using-python
     crl = ("-----BEGIN X509 CRL-----\n"
         + '\n'.join(rawCRL[i:i+64] for i in range(0, len(rawCRL), 64)) #X509 -each line have 64 bytes
         + "\n-----END X509 CRL-----\n")
@@ -22,10 +18,6 @@ def saveCRL(filename, rawCRL):
 
     with open(filename, "w") as crlFile:
         crlFile.write(crl)
-
-
-
-
 
 
 def saveCRT(filename, rawCRT):
