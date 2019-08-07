@@ -38,18 +38,17 @@ describe("Testing app functions", () => {
         App.stopApp();
     });
 
-    it("Test initApp", (done) => {
+    it("Test initApp", async () => {
         // App.initApp = jest.fn(App.initApp);
         const metricStore = new moscaMestrics.Metrics();
         const healthcheck = new HealthChecker();
 
         App.initApp(healthcheck, metricStore);
-        expect(App.initApp).toBeCalled();
-        expect(originalInit).toBeDefined();
-        expect(App.initApp).toBeTruthy();
+        await expect(App.initApp).toBeCalled();
+        await expect(originalInit).toBeDefined();
+        await expect(App.initApp).toBeTruthy();
 
         // spy the calls to add
-        expect(App.stopApp()).toBeFalsy();
-        done();
+        await expect(App.stopApp()).toBeFalsy();
     });
 });
