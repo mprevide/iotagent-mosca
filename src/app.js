@@ -10,10 +10,9 @@ const TAG = {filename: "app"};
 
 var isInitialized = false;
 var httpServer;
+const app = express();
 
 function initApp(healthChecker, metricStore) {
-    const app = express();
-
     app.use(bodyParser.json());
     app.use(healthCheck.getHTTPRouter(healthChecker));
     app.use(metrics.getHTTPRouter(metricStore));
@@ -26,15 +25,20 @@ function initApp(healthChecker, metricStore) {
         isInitialized = true;
     });
     logger.debug("... configuration endpoints were initialized", TAG);
+
+    return isInitialized;
 }
 
 function stopApp() {
     if(isInitialized) {
         httpServer.close();
+        isInitialized = false;
     }
+
+    return isInitialized;
 }
 
 module.exports = {
-    initApp, stopApp
+    initApp, stopApp, app
 };
 

@@ -8,6 +8,7 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.idea/
 
 ### Node ###
 # Logs
@@ -103,3 +104,4 @@ typings/
 
 docs/
 build/
+

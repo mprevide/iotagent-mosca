@@ -521,6 +521,8 @@ class MqttBackend {
       this.cache.delete(clientId);
     }
     logger.debug(`... device was successfully disconnected from broker.`, TAG);
+
+    return cacheEntry;
   }
 }
 
