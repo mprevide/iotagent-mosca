@@ -5,14 +5,16 @@ services:
 
 node_js:
   - '8'
-
+cache:
+  directories:
+    - node_modules
 script:
   - 'docker build -t ${TRAVIS_REPO_SLUG} .'
   - npm test
-  - codecov
+  #- codecov
 install:
   - npm install
-  - npm install -g codecov
+  #- npm install -g codecov
 after_success:
   - travis/publish.sh
   - travis/deploy-gh-pages.sh
