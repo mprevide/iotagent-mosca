@@ -22,9 +22,11 @@ const HealthChecker = require("../../src/healthcheck").AgentHealthChecker;
 describe("Testing app functions", () => {
     // store the original implementation
     const originalStop = App.closeApp;
+    const originalInit = App.initApp;
 
     // mock add with the original implementation
     App.stopApp = jest.fn(originalStop);
+    App.initApp = jest.fn(originalInit);
 
     beforeEach(() => jest.resetModules());
 
@@ -36,23 +38,18 @@ describe("Testing app functions", () => {
         App.stopApp();
     });
 
-    it("Should not throw an error", (done) => {
-        // const appInstance = App.app;
-        // expect(appInstance).toBeDefined();
-        done();
-    });
-
     it("Test initApp", (done) => {
         // App.initApp = jest.fn(App.initApp);
-        // const metricStore = new moscaMestrics.Metrics();
-        // const healthcheck = new HealthChecker();
+        const metricStore = new moscaMestrics.Metrics();
+        const healthcheck = new HealthChecker();
 
-        // App.initApp(healthcheck, metricStore);
-        // expect(App.initApp).toBeCalled();
-        // expect(App.initApp).toBeTruthy();
+        App.initApp(healthcheck, metricStore);
+        expect(App.initApp).toBeCalled();
+        expect(originalInit).toBeDefined();
+        expect(App.initApp).toBeTruthy();
 
-        // // spy the calls to add
-        // expect(App.stopApp()).toBeFalsy();
+        // spy the calls to add
+        expect(App.stopApp()).toBeFalsy();
         done();
     });
 });
