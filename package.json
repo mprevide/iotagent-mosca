@@ -30,6 +30,7 @@
     "@dojot/iotagent-nodejs": "^2.1.0-beta",
     "express": "4.16.3",
     "mosca": "^2.8.0",
+    "openssl-nodejs": "^1.0.5",
     "redis": "^2.8.0"
   },
   "devDependencies": {
