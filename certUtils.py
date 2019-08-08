@@ -12,8 +12,8 @@ from OpenSSL import crypto
 
 def saveCRL(filename, rawCRL):
     crl = ("-----BEGIN X509 CRL-----\n"
-           + re.sub("(.{64})", "\\1\n", rawCRL, 0, re.DOTALL)
-           + "\n-----END X509 CRL-----\n")
+            + '\n'.join(rawCRL[i:i+64] for i in range(0, len(rawCRL), 64)) #X509 -each line have 64 bytes
+            + "\n-----END X509 CRL-----\n")
     crypto.load_crl(crypto.FILETYPE_PEM, crl)
 
     with open(filename, "w") as crlFile:
@@ -104,7 +104,7 @@ def retrieveCAChain(EJBCA_API_URL, CAName):
 
 def retrieveCACRL(EJBCA_API_URL, CAName):
     response = requests.get(EJBCA_API_URL + '/ca/' + CAName + "/crl",
-                            headers=defaultHeader)
+                            headers=defaultHeader, params={'update': 'true'})
     return json.loads(response.content)['CRL']
 
 
