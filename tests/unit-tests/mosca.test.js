@@ -5,17 +5,19 @@ const client = require("../moscaSetup").clientSetup;
 const packet = require("../moscaSetup").packetSetup;
 const config = require("../../src/config");
 const agent = require("../moscaSetup").agentSetup;
-
+const TLSSocket = require("tls").TLSSocket;
 const mosca = new Mosca.MqttBackend(agent);
 
 jest.mock('fs');
+jest.mock('tls');
 
 const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
 
 describe("Testing Mosca functions", () => {
-
+    let tlsSocket = null;
     beforeEach(() => {
         jest.resetModules();
+
         require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
     });
 
@@ -39,6 +41,15 @@ describe("Testing Mosca functions", () => {
     });
 
     test("Testing Condition 1: client.id follows the pattern tenant:deviceId)", (done) => {
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: agent.deviceId}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
         let newClient = {...client};
         newClient.id = null;
 
@@ -56,7 +67,22 @@ describe("Testing Mosca functions", () => {
 
         newClient = {...client};
         newClient.id = '';
-        delete newClient.connection.stream.TLSSocket;
+        delete newClient.connection.stream;
+
+        mosca.authenticate(newClient, 'admin', 'admin', (callback) => {
+            expect(callback).toBeNull();
+            done();
+        });
+
+        newClient = {...client};
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: '98989'}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
 
         mosca.authenticate(newClient, 'admin', 'admin', (callback) => {
             expect(callback).toBeNull();

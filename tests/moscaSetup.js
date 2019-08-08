@@ -1,27 +1,20 @@
 const clientSetup = {
     id: 'admin:u86fda',
     connection: {
-        stream: {
-            TLSSocket: true,
-            getPeerCertificate() {
-                const subject = {
-                    CN: 'admin:u86fda'
-                }
-                return subject
-            }
-        }
+        stream: null,
     },
     close() {
         return true;
-    }
-}
+    },
+    deviceId: 'u86fda2'
+};
 
 const packetSetup = {
     topic: 'admin/6dc341/attrs',
     payload: {
         "temperature": '15.3'
     }
-}
+};
 
 const agentSetup = {
     metricsStore: {

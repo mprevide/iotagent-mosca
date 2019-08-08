@@ -315,7 +315,6 @@ class MqttBackend {
     logger.debug(`Checking its certificates...`, TAG);
       if (client.connection.stream instanceof tls.TLSSocket) {
           const clientCertificate = client.connection.stream.getPeerCertificate();
-
           if (!clientCertificate.hasOwnProperty("subject") ||
               !clientCertificate.subject.hasOwnProperty("CN") ||
               clientCertificate.subject.CN !== ids.device) {
