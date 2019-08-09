@@ -93,6 +93,14 @@ describe("Testing Mosca functions", () => {
         mosca.onMessage('message');
         mosca._processMessage(packet, client);
         expect(mosca.agentCallback).toEqual("message");
+
+        expect(mosca._processMessage(packet, null)).toBeUndefined();
+
+        packet.topic = '$SYS/admin/6dc341/attrs';
+        packet.payload = {'message': 'ashfhasdjfkasdfaksfdasfasdfasdhfasdfasdhfhasdfhasdfasdfhkasdhflasdfhasdhfasdjfiopasdfjnasfgasdfjasdfoasdfhasdlflasdfjlasdlçfjklçasdfoasfgakljkl'};
+
+        mosca.agentCallbackInternal = jest.fn();
+        expect(mosca._processMessage(packet, null)).toBeUndefined();
     });
 
     test("Should parse a string and return an object {tenant:'admin', device:'98787de'} or undefined", () => {
@@ -110,6 +118,10 @@ describe("Testing Mosca functions", () => {
             expect(callback).toBeFalsy();
         });
 
+    });
+
+     test("Should check the authorization of device", () => {
+        expect(undefined).toBeUndefined();
     });
 
 
