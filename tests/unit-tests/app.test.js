@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use strict";
 
 /**
@@ -7,52 +6,41 @@
  * This module has the following dependencies:
  *
  * - express
-*/
+ */
 
 const App = require("../../src/app");
-const moscaMestrics = require("../../src/metrics");
-const HealthChecker = require("../../src/healthcheck").AgentHealthChecker;
+const express = require("express");
 
 //
 // Mocking dependencies
 //
-// jest.mock("express");
-//
+jest.mock("express");
 
 describe("Testing app functions", () => {
-    // store the original implementation
-    const originalStop = App.closeApp;
+    const listen = jest.fn();
+    const use = jest.fn();
+    beforeEach(() => {
+        express.Router.mockImplementation(() => {
+            const router = Object.create(express.Router.prototype);
+            router.get = jest.fn();
+            router.use = jest.fn();
+            router.put = jest.fn();
+            return router;
+        });
 
-    // mock add with the original implementation
-    App.stopApp = jest.fn(originalStop);
 
-    beforeEach(() => jest.resetModules());
+        express.mockReturnValue({
+            use: use,
+            listen: listen,
+            router: jest.fn(),
+        });
 
-    afterEach(() => {
-        App.stopApp();
     });
 
-    afterAll(() => {
-        App.stopApp();
+    it("Should not throw an error", () => {
+        App.initApp(null, null);
+        expect(use).toBeCalled();
+        expect(listen).toBeCalled();
     });
 
-    it("Should not throw an error", (done) => {
-        // const appInstance = App.app;
-        // expect(appInstance).toBeDefined();
-        done();
-    });
-
-    it("Test initApp", (done) => {
-        // App.initApp = jest.fn(App.initApp);
-        // const metricStore = new moscaMestrics.Metrics();
-        // const healthcheck = new HealthChecker();
-        //
-        // App.initApp(healthcheck, metricStore);
-        // expect(App.initApp).toBeCalled();
-        // expect(App.initApp).toBeTruthy();
-        //
-        // // spy the calls to add
-        // expect(App.stopApp()).toBeFalsy();
-        done();
-    });
 });

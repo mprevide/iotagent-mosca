@@ -104,21 +104,14 @@ describe("Testing Mosca functions", () => {
         expect(mosca.parseClientIdOrTopic(0, "98787de")).toBeUndefined();
     });
 
-    // test("Should check the authorization of device", (done) => {
-    //     mosca._checkAuthorization(client, '/tenant/98787de/attrs', 'temperature', (callback) => {
-    //         expect(mosca.cache.client).toBeUndefined();
-    //         expect(callback).toBeNull();
-    //         expect(callback).toBeFalsy();
-    //         done();
-    //     });
-    //
-    //     newClient = {...client};
-    //     newClient.id = '';
-    //     mosca._checkAuthorization(newClient, '/tenant/98787de/attrs', 'temperature', (callback) => {
-    //         expect(callback).toBeUndefined();
-    //         done();
-    //     });
-    // });
+    test("Should check the authorization of device", async () => {
+        await mosca._checkAuthorization(client, '/tenant/98787de/attrs', 'temperature', (callback) => {
+            expect(mosca.cache.client).toBeUndefined();
+            expect(callback).toBeNull();
+            expect(callback).toBeFalsy();
+        });
+
+    });
 
 
     test("Should use unsecured mode", () => {
