@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use strict";
 
 /**
@@ -9,12 +8,13 @@
  * - supertest
  */
 
-// const request = require("request");
-const app = require("../../src/app").app;
+const express = require("express");
 const stopApp = require("../../src/app").stopApp;
 const moscaMestrics = require("../../src/metrics");
 
 const request = require("supertest");
+
+const app = express();
 
 //
 // Mocking dependencies
@@ -36,7 +36,7 @@ describe("Testing metrics functions", () => {
 
     it('Should return OK status and the metricStore object', async () => {
         let metricStore = new moscaMestrics.Metrics();
-            metricStore.lastMetricsInfo = {
+        metricStore.lastMetricsInfo = {
             connectedClients: 0,
             connectionsLoad1min: 0,
             connectionsLoad5min: 0,
@@ -50,7 +50,15 @@ describe("Testing metrics functions", () => {
         let response = await get('/iotagent-mqtt/metrics', '');
 
         expect(response.status).toEqual(200);
-        expect(JSON.parse(response.text)).toEqual({"connectedClients": 0, "connectionsLoad1min": 0, "connectionsLoad5min": 0, "connectionsLoad15min": 0, "messagesLoad1min": 0, "messagesLoad5min": 0, "messagesLoad15min": 0});
+        expect(JSON.parse(response.text)).toEqual({
+            "connectedClients": 0,
+            "connectionsLoad1min": 0,
+            "connectionsLoad5min": 0,
+            "connectionsLoad15min": 0,
+            "messagesLoad1min": 0,
+            "messagesLoad5min": 0,
+            "messagesLoad15min": 0
+        });
 
         metricStore.lastMetricsInfo = null;
         app.use(moscaMestrics.getHTTPRouter(metricStore));
