@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use strict";
 
 /**
@@ -7,45 +6,41 @@
  * This module has the following dependencies:
  *
  * - express
-*/
+ */
 
 const App = require("../../src/app");
-const moscaMestrics = require("../../src/metrics");
-const HealthChecker = require("../../src/healthcheck").AgentHealthChecker;
+const express = require("express");
 
 //
 // Mocking dependencies
 //
-// jest.mock("express");
-//
+jest.mock("express");
 
 describe("Testing app functions", () => {
-    // store the original implementation
-    // const originalStop = App.closeApp;
+    const listen = jest.fn();
+    const use = jest.fn();
+    beforeEach(() => {
+        express.Router.mockImplementation(() => {
+            const router = Object.create(express.Router.prototype);
+            router.get = jest.fn();
+            router.use = jest.fn();
+            router.put = jest.fn();
+            return router;
+        });
 
-    const initApp = jest.fn(App.initApp);
 
-    beforeEach(() => jest.resetModules());
+        express.mockReturnValue({
+            use: use,
+            listen: listen,
+            router: jest.fn(),
+        });
 
-    afterEach(() => {
-        App.stopApp();
     });
 
-    afterAll(() => {
-        App.stopApp();
+    it("Should not throw an error", () => {
+        App.initApp(null, null);
+        expect(use).toBeCalled();
+        expect(listen).toBeCalled();
     });
 
-    it("Should not throw an error", async () => {
-
-        const metricStore = new moscaMestrics.Metrics();
-        const healthcheck = new HealthChecker();
-
-        await expect(initApp(healthcheck, metricStore)).toBeFalsy();
-    });
-
-    it("Test initApp", (done) => {
-        // spy the calls to add
-        expect(App.stopApp()).toBeFalsy();
-        done();
-    });
 });
