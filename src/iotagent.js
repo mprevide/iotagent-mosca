@@ -136,7 +136,7 @@ class IoTAgent {
       }
     }
 
-    return undefined;
+    return;
   }
 
   _processInternalMessage(packetTopic, packetPayload) {
