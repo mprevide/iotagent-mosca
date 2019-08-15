@@ -9,7 +9,6 @@
  * - mosca
  */
 
-// var Agent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = require("mosca");
 const backend = require("../../src/mosca");
 var Agent = require('@dojot/iotagent-nodejs').IoTAgent;
@@ -52,7 +51,6 @@ describe("Mosca backend", () => {
     });
 
     it("Should build a MqttBackend instance with support for unsecure connections", () => {
-        // const config = JSON.parse(JSON.stringify(defaultConfig));
         defaultConfig.allow_unsecured_mode = true;
 
         const mqttBackend = new backend.MqttBackend("sample-agent", defaultConfig);
@@ -137,7 +135,8 @@ describe("Mosca backend", () => {
         expect(mqttBackend.agentCallbackInternal).toEqual("sample-callback");
     });
 
-    it("Should process internal messages properly", () => {
+
+    it("Should parse topic properly", () => {
         //As _processMessages is one entrypoint for data, it will be
         //tested (even if it is a internal function)
         const iotagent = new IoTAgent();
@@ -150,14 +149,23 @@ describe("Mosca backend", () => {
             payload: { toString: () => "sample-payload" }
         }
 
-        expect(iotagent).toBeDefined();
-        expect(iotagent.mqttBackend).toBeDefined();
         expect(iotagent.getTopicParameter(samplePacket.topic, 1)).toEqual('Yoda');
         expect(iotagent.getTopicParameter()).toBeUndefined();
         expect(iotagent.getTopicParameter('topic')).toEqual('topic');
+    });
 
-        samplePacket.topic = '$SYS/topic/clients/connected';
-        samplePacket.payload = '100';
+    it("Should process internal messages properly", () => {
+        //As _processMessages is one entrypoint for data, it will be
+        //tested (even if it is a internal function)
+        const iotagent = new IoTAgent();
+        iotagent.agent = new Agent();
+        iotagent.mqttBackend = new backend.MqttBackend(iotagent.agent);
+        iotagent.metricsStore = new Metrics();
+
+        const samplePacket = {
+            topic: "$SYS/topic/clients/connected",
+            payload: { toString: () => "100" }
+        }
 
         iotagent._processInternalMessage(samplePacket.topic, samplePacket.payload);
         expect(iotagent.metricsStore.lastMetricsInfo.connectedClients).toEqual('100');
@@ -208,7 +216,6 @@ describe("Mosca backend", () => {
 
         iotagent.initHealthCheck(healthcheck.healthChecker);
         expect(iotagent.messageMonitor.monitor).toBeDefined();
-        // expect(iotagent._registerCallbacks()).toBeTruthy();
 
         const data = {
             timestamp: 10294384078
@@ -234,4 +241,41 @@ describe("Mosca backend", () => {
         expect(iotagent._processDeviceRemoval('admin', event)).toBeUndefined();
     });
 
+     // test a device actuation
+    it("should process a device actuation ", () => {
+
+        const tenant = 'my-tenant';
+
+        const event = {
+            data: {
+                id: 1,
+                attrs: {
+                    'attr-1': 'attr-1-value'
+                }
+            }
+        };
+
+        const deviceID = event.data.id;
+        const topic = `/${tenant}/${deviceID}/config`;
+
+        // messages builded
+        const message = {
+            'topic': topic,
+            'payload': JSON.stringify(event.data.attrs),
+            'qos': 0,
+            'retain': false
+        };
+
+        // >> Tested code
+        const iotagent = new IoTAgent();
+        iotagent.mqttBackend.server.publish = jest.fn();
+        iotagent._processDeviceActuation(tenant, event);
+        // << Tested code
+
+        const firstArgument = iotagent.mqttBackend.server.publish.mock.calls[0][0];
+
+        // >> Result verification
+        expect(firstArgument).toEqual(message);
+        // << Result verification
+    })
 });
