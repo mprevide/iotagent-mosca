@@ -128,7 +128,15 @@ class IoTAgent {
   }
 
   getTopicParameter(topic, index) {
-    return topic.split('/')[index];
+    if(topic) {
+      if(topic.includes('/')) {
+        return topic.split('/')[index];
+      } else {
+        return topic;
+      }
+    }
+
+    return;
   }
 
   _processInternalMessage(packetTopic, packetPayload) {
