@@ -6,15 +6,16 @@
  * This module has the following dependencies:
  *
  */
+
 describe("Testing index", () => {
 
     beforeEach(() => {
-        
+
     });
 
-    it("Should catch a error", async () => {
+    it("Should catch a error", () => {
         try {
-            const index = await require("../../src/index");
+            require("../../src/index");
         } catch (e) {
             expect(e).toMatch('error');
         }
