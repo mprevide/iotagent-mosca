@@ -7,6 +7,9 @@
  *
  */
 
+jest.mock('node-rdkafka');
+jest.mock("@dojot/dojot-module-logger");
+
 describe("Testing index", () => {
 
     beforeEach(() => {
