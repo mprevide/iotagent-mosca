@@ -18,7 +18,7 @@ config.logger = {
 config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || './mosca/certs/mosca.crt',
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
-    ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt'
+    ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
 };
 
 config.healthcheck = {

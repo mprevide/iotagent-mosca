@@ -24,6 +24,7 @@ const moscaSetup = require("../moscaSetup");
 jest.mock("mosca");
 jest.mock("@dojot/iotagent-nodejs");
 
+
 describe("Mosca backend", () => {
     beforeEach(() => {
         mosca.Server.mockClear();
