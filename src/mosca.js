@@ -380,11 +380,10 @@ class MqttBackend {
         }
     }
 
-    /***
-     * tls connection expiration
-     * @param client
-     * @private
-     */
+    // *
+    // tls connection expiration
+    // @param client
+    // @private
     _tlsConnectionExpiration(client) {
         const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
         if (expirationConexTime) {
