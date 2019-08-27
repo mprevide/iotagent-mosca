@@ -340,7 +340,13 @@ class MqttBackend {
         //authorize client connection
         logger.debug(`... cache entry added.`, TAG);
         logger.info(`Connection authorized for ${client.id}.`, TAG);
+
+        this._tlsInactivityTimeout(client);
+
+        this._tlsConnectionExpiration(client);
+
         callback(null, true);
+
       })
       .catch(error => {
         //reject client connection
@@ -353,7 +359,38 @@ class MqttBackend {
   }
 
 
-  /**
+    /**
+     * _tlsInactivityTimeout
+     * @param client
+     * @private
+     */
+    _tlsInactivityTimeout(client) {
+        const inactivityConexTimeout = defaultConfig.mosca_tls.inactivityConexTimeout;
+        if (inactivityConexTimeout) {
+            client.connection.stream.setTimeout(inactivityConexTimeout);
+            client.connection.stream.on('timeout', () => {
+                logger.info(`Timeout for inactivity connection ${client.id}.`, TAG);
+                client.connection.stream.end();
+            });
+        }
+    }
+
+    /***
+     * tls connection expiration
+     * @param client
+     * @private
+     */
+    _tlsConnectionExpiration(client) {
+        const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
+        if (expirationConexTime) {
+            setTimeout(function () {
+                logger.info(`TlS connection expiration ${client.id}.`, TAG);
+                client.connection.stream.end();
+            }, expirationConexTime);
+        }
+    }
+
+    /**
    * Check authorization when a MQTT client wants to publish something or
    * subscribe to a particular topic.
    *

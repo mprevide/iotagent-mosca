@@ -9,6 +9,7 @@ const TLSSocket = require("tls").TLSSocket;
 const mosca = new Mosca.MqttBackend();
 
 jest.mock('tls');
+//jest.useFakeTimers();
 
 describe("Testing Mosca functions", () => {
 
@@ -35,7 +36,37 @@ describe("Testing Mosca functions", () => {
         expect(mosca._getTopicParameter('tenant/deviceId/attrs', 1)).toEqual('deviceId');
     });
 
-    test("Testing Condition 1: client.id follows the pattern tenant:deviceId)", (done) => {
+    test("Test tls Inactivity Timeout ", () => {
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: agent.deviceId}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
+        mosca._tlsInactivityTimeout(client);
+
+    });
+
+    test("_tlsConnectionExpiration ", () => {
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: agent.deviceId}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
+        mosca._tlsConnectionExpiration(client);
+
+        jest.spyOn( client.connection.stream, 'end');
+
+    });
+
+    test("Testing  client.id follows the pattern tenant:deviceId)", (done) => {
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
