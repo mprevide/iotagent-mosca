@@ -311,21 +311,26 @@ class MqttBackend {
     logger.debug(`Checking its certificates...`, TAG);
     if (client.connection.stream instanceof tls.TLSSocket) {
       const clientCertificate = client.connection.stream.getPeerCertificate();
+
       if (
         !clientCertificate.hasOwnProperty("subject") ||
         !clientCertificate.subject.hasOwnProperty("CN") ||
         clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
+
         // reject client connection
         logger.debug(`... client certificate is invalid.`, TAG);
         logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
         callback(null, false);
+
         return;
       }
     }
     logger.debug(`... client certificate was successfully retrieved and it is valid.`, TAG);
 
+
     // Condition 3: Device exists in dojot
     logger.debug(`Checking whether this device exists in dojot...`, TAG);
+
     this.agent
       .getDevice(ids.device, ids.tenant)
       .then(() => {

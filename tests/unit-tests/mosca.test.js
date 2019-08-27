@@ -6,15 +6,19 @@ const packet = require("../moscaSetup").packetSetup;
 const config = require("../../src/config");
 const agent = require("../moscaSetup").agentSetup;
 const TLSSocket = require("tls").TLSSocket;
+const ioTAgent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = new Mosca.MqttBackend();
 
 jest.mock('tls');
-//jest.useFakeTimers();
+jest.mock('@dojot/iotagent-nodejs');
+
 
 describe("Testing Mosca functions", () => {
 
     beforeEach(() => {
         jest.resetModules();
+        jest.clearAllMocks();
+        jest.resetAllMocks();
     });
 
     test("Should define the attribute agentCallback as the string passed as argument", () => {
@@ -37,83 +41,146 @@ describe("Testing Mosca functions", () => {
     });
 
     test("Test tls Inactivity Timeout ", () => {
+        const cmds = {};
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
-            rv.getPeerCertificate = function () {
-                return {subject: {CN: agent.deviceId}};
+            rv.on = function (eventName, callback) {
+                cmds[eventName] = callback;
             };
             return rv;
         });
         client.connection.stream = new TLSSocket(null);
-
+        config.mosca_tls.inactivityConexTimeout = 1;
         mosca._tlsInactivityTimeout(client);
+        expect(client.connection.stream.setTimeout).toBeCalled();
+
+        cmds.timeout();
+        expect(client.connection.stream.end).toBeCalled();
+
 
     });
 
-    test("_tlsConnectionExpiration ", () => {
-        TLSSocket.mockImplementation(() => {
-            const rv = Object.create(TLSSocket.prototype);
-            rv.getPeerCertificate = function () {
-                return {subject: {CN: agent.deviceId}};
-            };
-            return rv;
-        });
+    test("Testing method tls Connection Expiration ", () => {
+        jest.useFakeTimers();
         client.connection.stream = new TLSSocket(null);
-
         mosca._tlsConnectionExpiration(client);
-
-        jest.spyOn( client.connection.stream, 'end');
-
+        expect(client.connection.stream.end).not.toBeCalled();
+        jest.runAllTimers();
+        expect(client.connection.stream.end).toBeCalled();
     });
 
-    test("Testing  client.id follows the pattern tenant:deviceId)", (done) => {
+
+    test("Testing  authenticate : for a authorized client and find device", (done) => {
+
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: agent.deviceId}};
+                return {subject: {CN: client.id}};
             };
             return rv;
         });
         client.connection.stream = new TLSSocket(null);
 
+        ioTAgent.mockImplementation(() => {
+            const rv = Object.create(ioTAgent.prototype);
+            rv.getDevice = function (deviceId, tenantId) {
+                return Promise.resolve();
+            };
+            return rv;
+        });
+
+        const mosca2 = new Mosca.MqttBackend(new ioTAgent());
+        mosca2.authenticate(client, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeTruthy();
+            done();
+        });
+
+    });
+
+    test("Testing  authenticate : for a authorized client and cant find device", (done) => {
+
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: client.id}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
+        ioTAgent.mockImplementation(() => {
+            const rv = Object.create(ioTAgent.prototype);
+            rv.getDevice = function (deviceId, tenantId) {
+                return Promise.reject();
+            };
+            return rv;
+        });
+
+        const mosca2 = new Mosca.MqttBackend(new ioTAgent());
+        mosca2.authenticate(client, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
+            done();
+        });
+
+    });
+
+    test("Testing  authenticate : for a user with client.id and tls", (done) => {
+
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: client.id}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
         let newClient = {...client};
         newClient.id = null;
 
-        mosca.authenticate(newClient, "admin", "admin", (callback) => {
-            expect(mosca.cache.client).toBeUndefined();
-            expect(callback).toBeNull();
+        const mosca2 = new Mosca.MqttBackend();
+        mosca2.authenticate(newClient, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
             done();
         });
 
-        mosca.authenticate(client, "admin", "admin", (callback) => {
-            expect(mosca.cache.client).toBeUndefined();
-            expect(callback).toBeNull();
+    });
+
+    test("Testing  authenticate : for a user with client.id not tls", (done) => {
+        client.connection.stream = {};
+        let newClient = {...client};
+        newClient.id = null;
+
+        const mosca2 = new Mosca.MqttBackend();
+        mosca2.authenticate(newClient, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeTruthy();
             done();
         });
 
-        newClient = {...client};
-        newClient.id = '';
-        delete newClient.connection.stream;
+    });
 
-        mosca.authenticate(newClient, 'admin', 'admin', (callback) => {
-            expect(callback).toBeNull();
-            done();
-        });
 
-        newClient = {...client};
+    test("Testing  authenticate Condition 2: wrong certificate", (done) => {
+
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: '98989'}};
+                return {subject: {CN: client.id + 'xx'}};
             };
             return rv;
         });
         client.connection.stream = new TLSSocket(null);
 
-        mosca.authenticate(newClient, 'admin', 'admin', (callback) => {
-            expect(callback).toBeNull();
+        const mosca2 = new Mosca.MqttBackend();
+        mosca2.authenticate(client, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
             done();
         });
+
     });
 
     test("Should split a string passed as first argument and return a debug message", () => {
@@ -130,6 +197,11 @@ describe("Testing Mosca functions", () => {
         expect(mosca._processMessage(packet, null)).toBeUndefined();
     });
 
+    test("_processMessage without agentCallBack", () => {
+        mosca.agentCallbackInternal = null;
+        expect(mosca._processMessage(null, null)).toBeUndefined();
+    });
+
     test("Should parse a string and return an object {tenant:'admin', device:'98787de'} or undefined", () => {
         expect(mosca.parseClientIdOrTopic("admin:98787de")).toEqual({tenant: 'admin', device: '98787de'});
         expect(mosca.parseClientIdOrTopic()).toBeUndefined();
@@ -138,16 +210,54 @@ describe("Testing Mosca functions", () => {
         expect(mosca.parseClientIdOrTopic(0, "98787de")).toBeUndefined();
     });
 
-    test("Should check the authorization of device", async () => {
-        await mosca._checkAuthorization(client, '/tenant/98787de/attrs', 'temperature', (callback) => {
+    test("_checkAuthorization without cache", async () => {
+        await mosca._checkAuthorization(client, '/tenant/98787de/attrs', 'temperature', (param1, param2) => {
             expect(mosca.cache.client).toBeUndefined();
-            expect(callback).toBeNull();
-            expect(callback).toBeFalsy();
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
         });
 
     });
 
-     test("Should check the authorization of device", () => {
+    test("_checkAuthorization with cache but not complete - getDevice", async () => {
+        mosca.cache.set("tenant:98787de", {
+            client: null,
+            tenant: 'tenant',
+            deviceId: null
+        });
+
+        ioTAgent.mockImplementation(() => {
+            const rv = Object.create(ioTAgent.prototype);
+            rv.getDevice = function (deviceId, tenantId) {
+                return Promise.resolve();
+            };
+            return rv;
+        });
+
+        mosca.agent = new ioTAgent();
+
+        await mosca._checkAuthorization({'id':'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeTruthy();
+        });
+
+    });
+
+    test("_checkAuthorization with cache and callback true", async () => {
+        mosca.cache.set("tenant:98787de", {
+            client: null,
+            tenant: 'tenant',
+            deviceId: '98787de'
+        });
+
+        await mosca._checkAuthorization({'id':'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeTruthy();
+        });
+
+    });
+
+    test("Should check the authorization of device", () => {
         expect(undefined).toBeUndefined();
     });
 
