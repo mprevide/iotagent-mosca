@@ -59,6 +59,8 @@ class MqttBackend {
     };
 
     this.cache = new Map();
+    //Keeps timeout objects for a tenant:device
+    this.inactivityTimeout = {};
     this.agent = agent;
     this.server = new mosca.Server(moscaSettings);
 
@@ -346,9 +348,14 @@ class MqttBackend {
         logger.debug(`... cache entry added.`, TAG);
         logger.info(`Connection authorized for ${client.id}.`, TAG);
 
-        this._tlsInactivityTimeout(client);
+        //If there is a scheduled timeout cancel it.
+        if(this.inactivityTimeout[client.id]){
+          clearTimeout(this.inactivityTimeout[client.id]);
+        }
 
-        this._tlsConnectionExpiration(client);
+        this._tlsInactivityTimeout(client, ids.tenant, ids.device);
+
+        this._tlsConnectionExpiration(client, ids.tenant,  ids.device);
 
         callback(null, true);
 
@@ -365,34 +372,40 @@ class MqttBackend {
 
 
     /**
-     * If the connection is idle for a time defined by the environment variable, it is terminated.
+     * If the connection is Inactivity for a time defined by the environment variable
+     * , it is timeout and call disconnectDevice.
      * @param client
+     * @param tenant
+     * @param deviceId
      * @private
      */
-    _tlsInactivityTimeout(client) {
-        const inactivityConexTimeout = defaultConfig.mosca_tls.inactivityConexTimeout;
-        if (inactivityConexTimeout) {
-            client.connection.stream.setTimeout(inactivityConexTimeout);
-            client.connection.stream.on('timeout', () => {
-                logger.info(`Timeout for inactivity connection ${client.id}.`, TAG);
-                client.connection.stream.end();
-            });
-        }
+    _tlsInactivityTimeout(client,tenant, deviceId) {
+      const inactivityConexTimeout = defaultConfig.mosca_tls.inactivityConexTimeout;
+      if (inactivityConexTimeout) {
+        client.connection.stream.setTimeout(inactivityConexTimeout);
+        client.connection.stream.on('timeout', () => {
+          logger.info(`Timeout for inactivity connection ${client.id}.`, TAG);
+          this.disconnectDevice(tenant,  deviceId);
+        });
+      }
     }
 
     /**
-     * If the connection is open for a time defined by the environment variable, it is terminated.
+     * If the connection is open for a time defined by the environment variable,
+     * it is call disconnectDevice param.
      * @param client
+     * @param tenant
+     * @param deviceId
      * @private
      */
-    _tlsConnectionExpiration(client) {
-        const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
-        if (expirationConexTime) {
-            setTimeout(function () {
-                logger.info(`TlS connection expiration ${client.id}.`, TAG);
-                client.connection.stream.end();
-            }, expirationConexTime);
-        }
+    _tlsConnectionExpiration(client, tenant, deviceId) {
+      const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
+      if (expirationConexTime) {
+        this.inactivityTimeout[client.id] = setTimeout( () => {
+          logger.info(`TlS connection expiration ${client.id}.`, TAG);
+          this.disconnectDevice(tenant,  deviceId);
+        }, expirationConexTime);
+      }
     }
 
     /**
