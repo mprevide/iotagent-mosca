@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "jest tests/unit-tests/mosca.test.js --coverage",
+    "test": "jest tests/unit-tests/*.test.js --coverage",
     "start": "node src/index.js",
     "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
   },
