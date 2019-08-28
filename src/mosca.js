@@ -379,7 +379,7 @@ class MqttBackend {
      * @param deviceId
      * @private
      */
-    _tlsInactivityTimeout(client,tenant, deviceId) {
+    _tlsInactivityTimeout(client, tenant, deviceId) {
       const inactivityConexTimeout = defaultConfig.mosca_tls.inactivityConexTimeout;
       if (inactivityConexTimeout) {
         client.connection.stream.setTimeout(inactivityConexTimeout);
