@@ -92,6 +92,7 @@ describe("Testing Mosca functions", () => {
         });
 
         const mosca2 = new Mosca.MqttBackend(new ioTAgent());
+        mosca2.inactivityTimeout[client.id] = jest.fn();
         mosca2.authenticate(client, "", "", (param1, param2) => {
             expect(param1).toBeNull();
             expect(param2).toBeTruthy();
