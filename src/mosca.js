@@ -365,7 +365,7 @@ class MqttBackend {
 
 
     /**
-     * _tlsInactivityTimeout
+     * If the connection is idle for a time defined by the environment variable, it is terminated.
      * @param client
      * @private
      */
@@ -380,10 +380,11 @@ class MqttBackend {
         }
     }
 
-    // *
-    // tls connection expiration
-    // @param client
-    // @private
+    /**
+     * If the connection is open for a time defined by the environment variable, it is terminated.
+     * @param client
+     * @private
+     */
     _tlsConnectionExpiration(client) {
         const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
         if (expirationConexTime) {
