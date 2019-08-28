@@ -65,12 +65,12 @@ BACKEND_HOST            | redis host                                          | 
 BACKEND_PORT            | redis port                                          | 6379
 ALLOW_UNSECURED_MODE    | allow iotagent mosca to run on insecure mode        | false
 LOG_LEVEL               | logger level (debug, error, warning, info)          | info
-MOSCA_TLS_SECURE_CERT   | mosca tls **certificate** path                      | ```<project-path>```/mosca/certs/mosca.crt
-MOSCA_TLS_SECURE_KEY    | mosca tls **key** path                              | ```<project-path>```/mosca/certs/mosca.key
-MOSCA_TLS_CA_CERT       | mosca tls **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
-MOSCA_TLS_DNS_LIST      | Mosca TLS dns list (separated by a comma)           | mqtt,mosca,localhost
-MOSCA_TLS_CON_MAX_LIFETIME  | Maximum lifetime of a connection in ms          | 7200000
-MOSCA_TLS_CON_IDLE_TIMEOUT  | The idle timeout for a connection in ms         | 1800000
+MOSCA_TLS_SECURE_CERT   | Mosca TLS **certificate** path                      | ```<project-path>```/mosca/certs/mosca.crt
+MOSCA_TLS_SECURE_KEY    | Mosca TLS **key** path                              | ```<project-path>```/mosca/certs/mosca.key
+MOSCA_TLS_CA_CERT       | Mosca TLS **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
+MOSCA_TLS_DNS_LIST      | Mosca TLS DNS list (separated by a comma)           | mqtt,mosca,localhost
+MOSCA_TLS_CON_MAX_LIFETIME  | TLS: Maximum lifetime of a connection in ms          | 7200000
+MOSCA_TLS_CON_IDLE_TIMEOUT  | TLS: The idle timeout for a connection in ms         | 1800000
 HC_UPTIME_TIMEOUT       | *healtcheck uptime timeout in milliseconds          | 30000
 HC_MEMORY_USAGE_TIMEOUT | *healtcheck memory usage timeout in milliseconds    | 30000
 HC_CPU_USAGE_TIMEOUT    | *healtcheck cpu usage timeout in milliseconds       | 30000
