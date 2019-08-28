@@ -51,22 +51,24 @@ describe("Testing Mosca functions", () => {
         });
         client.connection.stream = new TLSSocket(null);
         config.mosca_tls.inactivityConexTimeout = 1;
-        mosca._tlsInactivityTimeout(client);
+        mosca._tlsInactivityTimeout(client, '', '');
         expect(client.connection.stream.setTimeout).toBeCalled();
-
+        const spy = jest.spyOn(Mosca.MqttBackend.prototype, 'disconnectDevice');
         cmds.timeout();
-        expect(client.connection.stream.end).toBeCalled();
-
-
+        expect(Mosca.MqttBackend.prototype.disconnectDevice).toHaveBeenCalled();
+        spy.mockRestore();
     });
 
     test("Testing method tls Connection Expiration ", () => {
         jest.useFakeTimers();
         client.connection.stream = new TLSSocket(null);
-        mosca._tlsConnectionExpiration(client);
+        mosca._tlsConnectionExpiration(client, '', '');
         expect(client.connection.stream.end).not.toBeCalled();
+        const spy = jest.spyOn(Mosca.MqttBackend.prototype, 'disconnectDevice');
         jest.runAllTimers();
-        expect(client.connection.stream.end).toBeCalled();
+        expect(mosca.disconnectDevice).toBeCalled();
+        expect(Mosca.MqttBackend.prototype.disconnectDevice).toHaveBeenCalled();
+        spy.mockRestore();
     });
 
 
@@ -236,7 +238,7 @@ describe("Testing Mosca functions", () => {
 
         mosca.agent = new ioTAgent();
 
-        await mosca._checkAuthorization({'id':'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
+        await mosca._checkAuthorization({'id': 'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
             expect(param1).toBeNull();
             expect(param2).toBeTruthy();
         });
@@ -250,7 +252,7 @@ describe("Testing Mosca functions", () => {
             deviceId: '98787de'
         });
 
-        await mosca._checkAuthorization({'id':'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
+        await mosca._checkAuthorization({'id': 'tenant:98787de'}, '/tenant/98787de/attrs', 'attrs', (param1, param2) => {
             expect(param1).toBeNull();
             expect(param2).toBeTruthy();
         });
