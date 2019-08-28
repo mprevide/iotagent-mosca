@@ -19,8 +19,8 @@ config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || './mosca/certs/mosca.crt',
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
-    expirationConexTime: process.env.MOSCA_TLS_CONEX_EXPIRATION_TIME || 15000,
-    inactivityConexTimeout: process.env.MOSCA_TLS_INACTIVITY_CONEX_TIMEOUT || 10000,
+    maxLifetime: process.env.MOSCA_TLS_CON_MAX_LIFETIME || 7200000,
+    idleTimeout: process.env.MOSCA_TLS_CON_IDLE_TIMEOUT || 1800000,
 };
 
 config.healthcheck = {

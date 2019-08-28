@@ -50,8 +50,8 @@ describe("Testing Mosca functions", () => {
             return rv;
         });
         client.connection.stream = new TLSSocket(null);
-        config.mosca_tls.inactivityConexTimeout = 1;
-        mosca._tlsInactivityTimeout(client, '', '');
+        config.mosca_tls.idleTimeout = 1;
+        mosca._tlsIdleTimeout(client, '', '');
         expect(client.connection.stream.setTimeout).toBeCalled();
         const spy = jest.spyOn(Mosca.MqttBackend.prototype, 'disconnectDevice');
         cmds.timeout();
@@ -62,7 +62,7 @@ describe("Testing Mosca functions", () => {
     test("Testing method tls Connection Expiration ", () => {
         jest.useFakeTimers();
         client.connection.stream = new TLSSocket(null);
-        mosca._tlsConnectionExpiration(client, '', '');
+        mosca._tlsMaxLifetime(client, '', '');
         expect(client.connection.stream.end).not.toBeCalled();
         const spy = jest.spyOn(Mosca.MqttBackend.prototype, 'disconnectDevice');
         jest.runAllTimers();
@@ -92,7 +92,7 @@ describe("Testing Mosca functions", () => {
         });
 
         const mosca2 = new Mosca.MqttBackend(new ioTAgent());
-        mosca2.inactivityTimeout[client.id] = jest.fn();
+        mosca2.maxLifetimeTimeoutObj[client.id] = jest.fn();
         mosca2.authenticate(client, "", "", (param1, param2) => {
             expect(param1).toBeNull();
             expect(param2).toBeTruthy();
