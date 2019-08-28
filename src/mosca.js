@@ -385,7 +385,7 @@ class MqttBackend {
       if (idleTimeout) {
         client.connection.stream.setTimeout(idleTimeout);
         client.connection.stream.on('timeout', () => {
-          logger.info(`Timeout for inactivity connection ${client.id}.`, TAG);
+          logger.info(`Timeout for Idle connection ${client.id}.`, TAG);
           this.disconnectDevice(tenant, deviceId);
         });
       }
@@ -405,7 +405,7 @@ class MqttBackend {
       const maxLifetime = defaultConfig.mosca_tls.maxLifetime;
       if (maxLifetime) {
         this.maxLifetimeTimeoutObj[client.id] = setTimeout(() => {
-          logger.info(`TlS connection expiration ${client.id}.`, TAG);
+          logger.info(`TlS connection expiration ${client.id} because of Max Lifetime.`, TAG);
           this.disconnectDevice(tenant, deviceId);
         }, maxLifetime);
       }
