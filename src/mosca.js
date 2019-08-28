@@ -349,13 +349,13 @@ class MqttBackend {
         logger.info(`Connection authorized for ${client.id}.`, TAG);
 
         //If there is a scheduled timeout cancel it.
-        if(this.inactivityTimeout[client.id]){
+        if(this.inactivityTimeout[client.id]) {
           clearTimeout(this.inactivityTimeout[client.id]);
         }
 
         this._tlsInactivityTimeout(client, ids.tenant, ids.device);
 
-        this._tlsConnectionExpiration(client, ids.tenant,  ids.device);
+        this._tlsConnectionExpiration(client, ids.tenant, ids.device);
 
         callback(null, true);
 
@@ -385,7 +385,7 @@ class MqttBackend {
         client.connection.stream.setTimeout(inactivityConexTimeout);
         client.connection.stream.on('timeout', () => {
           logger.info(`Timeout for inactivity connection ${client.id}.`, TAG);
-          this.disconnectDevice(tenant,  deviceId);
+          this.disconnectDevice(tenant, deviceId);
         });
       }
     }
@@ -401,9 +401,9 @@ class MqttBackend {
     _tlsConnectionExpiration(client, tenant, deviceId) {
       const expirationConexTime = defaultConfig.mosca_tls.expirationConexTime;
       if (expirationConexTime) {
-        this.inactivityTimeout[client.id] = setTimeout( () => {
+        this.inactivityTimeout[client.id] = setTimeout(() => {
           logger.info(`TlS connection expiration ${client.id}.`, TAG);
-          this.disconnectDevice(tenant,  deviceId);
+          this.disconnectDevice(tenant, deviceId);
         }, expirationConexTime);
       }
     }
