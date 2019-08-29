@@ -29,7 +29,7 @@ config.mosca_tls = {
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
     maxLifetime: _zeroToDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
-    idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT,1800000),
+    idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT, 1800000),
 };
 
 config.healthcheck = {
