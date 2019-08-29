@@ -4,8 +4,7 @@
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
 
 const _zeroToDisabled = (envValue, defaultValue) => {
-    if (envValue === 0 || envValue === '0')
-        return null;
+    if (envValue === 0 || envValue === '0') { return null; }
     else if (Number(envValue)) {
         return Number(envValue);
     }
