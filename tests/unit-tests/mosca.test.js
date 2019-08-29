@@ -92,7 +92,7 @@ describe("Testing Mosca functions", () => {
         });
 
         const mosca2 = new Mosca.MqttBackend(new ioTAgent());
-        mosca2.maxLifetimeTimeoutObj[client.id] = jest.fn();
+
         mosca2.authenticate(client, "", "", (param1, param2) => {
             expect(param1).toBeNull();
             expect(param2).toBeTruthy();
@@ -285,8 +285,7 @@ describe("Testing Mosca functions", () => {
         newMosca.cache.set(client.id, {tenant: 'admin', deviceId: 'u86fda', client: client});
         const cacheEntry = newMosca.cache.get(client.id);
 
-        // console.log(cacheEntry);
-
+        newMosca.maxLifetimeTimeoutTLS[client.id] =  jest.fn();
         let disconnect = newMosca.disconnectDevice('admin', 'u86fda');
         expect(disconnect).toBeDefined();
         expect(disconnect.deviceId).toEqual('u86fda');
