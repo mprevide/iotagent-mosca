@@ -285,7 +285,7 @@ describe("Testing Mosca functions", () => {
         newMosca.cache.set(client.id, {tenant: 'admin', deviceId: 'u86fda', client: client});
         const cacheEntry = newMosca.cache.get(client.id);
 
-        newMosca.maxLifetimeTimeoutTLS[client.id] =  jest.fn();
+        newMosca.maxLifetimeTimeoutTLS.set(client.id,jest.fn());
         let disconnect = newMosca.disconnectDevice('admin', 'u86fda');
         expect(disconnect).toBeDefined();
         expect(disconnect.deviceId).toEqual('u86fda');

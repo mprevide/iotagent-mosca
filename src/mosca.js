@@ -60,7 +60,7 @@ class MqttBackend {
 
     this.cache = new Map();
     //Keeps timeout objects for a tenant:device
-    this.maxLifetimeTimeoutTLS = {};
+    this.maxLifetimeTimeoutTLS = new Map();
     this.agent = agent;
     this.server = new mosca.Server(moscaSettings);
 
@@ -400,10 +400,10 @@ class MqttBackend {
       const maxLifetime = defaultConfig.mosca_tls.maxLifetime;
       if (maxLifetime) {
         logger.debug(`Set timeout ${maxLifetime} ms by lifetime for ${client.id} ...`, TAG);
-        this.maxLifetimeTimeoutTLS[client.id] = setTimeout(() => {
+        this.maxLifetimeTimeoutTLS.set(client.id, setTimeout(() => {
           logger.info(`TlS connection disconnect  ${client.id} because of Max Lifetime.`, TAG);
           this.disconnectDevice(tenant, deviceId);
-        }, maxLifetime);
+        }, maxLifetime));
         logger.debug(`... adding timeout  by lifetime was successfully for ${client.id}.`, TAG);
       }
     }
@@ -546,10 +546,10 @@ class MqttBackend {
       logger.debug(`... device was successfully removed from cache.`, TAG);
 
       //If there is a scheduled timeout cancel it.
-      if(this.maxLifetimeTimeoutTLS.hasOwnProperty(key)) {
+      if(this.maxLifetimeTimeoutTLS.has(key)) {
         logger.debug(`Removing timeout by lifetime for ${key} ...`, TAG);
-        clearTimeout(this.maxLifetimeTimeoutTLS[key]);
-        delete this.maxLifetimeTimeoutTLS[key];
+        clearTimeout(this.maxLifetimeTimeoutTLS.get(key));
+        this.maxLifetimeTimeoutTLS.delete(key);
         logger.debug(`... removing timeout  by lifetime was successfully for ${key}.`, TAG);
       }
     }
