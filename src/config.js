@@ -2,7 +2,7 @@
 
 /* private */
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
-const _zeroIsDisabled = (envValue, defaultValue) => (envValue===0 || envValue==='0' ? null : (Number(envValue) ? Number(envValue) : defaultValue) );
+const _zeroIsDisabled = (envValue, defaultValue) => (envValue === 0 || envValue === '0' ? null : (Number(envValue) ? Number(envValue) : defaultValue));
 
 /* public */
 var config = {};
