@@ -2,10 +2,18 @@
 
 /* private */
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
-const _zeroIsDisabled = (envValue, defaultValue) => (envValue === 0 || envValue === '0' ? null : (Number(envValue) ? Number(envValue) : defaultValue));
+
+const _zeroToDisabled = (envValue, defaultValue) => {
+    if (envValue === 0 || envValue === '0')
+        return null;
+    else if (Number(envValue)) {
+        return Number(envValue);
+    }
+    return defaultValue;
+};
 
 /* public */
-var config = {};
+const config = {};
 
 config.backend_host = process.env.BACKEND_HOST || 'mosca-redis';
 config.backend_port = process.env.BACKEND_PORT || 6379;
@@ -20,8 +28,8 @@ config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || './mosca/certs/mosca.crt',
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
-    maxLifetime: _zeroIsDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
-    idleTimeout: _zeroIsDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT,1800000),
+    maxLifetime: _zeroToDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
+    idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT,1800000),
 };
 
 config.healthcheck = {
