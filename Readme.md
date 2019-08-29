@@ -69,8 +69,8 @@ MOSCA_TLS_SECURE_CERT   | Mosca TLS **certificate** path                      | 
 MOSCA_TLS_SECURE_KEY    | Mosca TLS **key** path                              | ```<project-path>```/mosca/certs/mosca.key
 MOSCA_TLS_CA_CERT       | Mosca TLS **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
 MOSCA_TLS_DNS_LIST      | Mosca TLS DNS list (separated by a comma)           | mqtt,mosca,localhost
-MOSCA_TLS_CON_MAX_LIFETIME  | TLS: Maximum lifetime of a connection in ms          | 7200000
-MOSCA_TLS_CON_IDLE_TIMEOUT  | TLS: The idle timeout for a connection in ms         | 1800000
+MOSCA_TLS_CON_MAX_LIFETIME  | TLS: Maximum lifetime of a connection in ms (If is 0 then is disabled)          | 7200000
+MOSCA_TLS_CON_IDLE_TIMEOUT  | TLS: The idle timeout for a connection in ms (If is 0 then is disabled)         | 1800000
 HC_UPTIME_TIMEOUT       | *healtcheck uptime timeout in milliseconds          | 30000
 HC_MEMORY_USAGE_TIMEOUT | *healtcheck memory usage timeout in milliseconds    | 30000
 HC_CPU_USAGE_TIMEOUT    | *healtcheck cpu usage timeout in milliseconds       | 30000

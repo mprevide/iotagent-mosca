@@ -487,7 +487,7 @@ class MqttBackend {
           logger.warn(`Connection was rejected and device doesn't exist. Really?`, TAG);
           logger.warn(`Error is: ${error}.`, TAG);
           callback(null, false);
-          return;
+
         });
     }
 
