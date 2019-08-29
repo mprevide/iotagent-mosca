@@ -368,8 +368,7 @@ class MqttBackend {
 
     /**
      * If the connection is Inactivity for a time defined by the environment variable
-     * (The idle timeout for a connection in ms)
-     * , it is timeout and call disconnectDevice.
+     * (The idle timeout for a connection in ms) will disconnect .
      * @param client
      * @param tenant
      * @param deviceId
@@ -390,8 +389,7 @@ class MqttBackend {
 
     /**
      * If the connection is open for a time defined by the environment variable
-     * (Maximum lifetime of a connection in ms ),
-     * it is call disconnectDevice param.
+     * (Maximum lifetime of a connection in ms )  will disconnect .
      *
      * @param client
      * @param tenant
