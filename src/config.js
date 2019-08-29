@@ -2,7 +2,7 @@
 
 /* private */
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
-const _toNumber = (envValue, defaultValue) => ((envValue) ? Number(envValue) : defaultValue);
+const _toNumber = (envValue) => ((envValue) ? Number(envValue) : null);
 
 /* public */
 var config = {};
@@ -20,8 +20,8 @@ config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || './mosca/certs/mosca.crt',
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
-    maxLifetime: _toNumber(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
-    idleTimeout: _toNumber(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT, 1800000),
+    maxLifetime: _toNumber(process.env.MOSCA_TLS_CON_MAX_LIFETIME) || 7200000,
+    idleTimeout: _toNumber(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT) || 1800000,
 };
 
 config.healthcheck = {
