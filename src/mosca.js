@@ -59,6 +59,8 @@ class MqttBackend {
     };
 
     this.cache = new Map();
+    //Keeps timeout objects for a tenant:device
+    this.maxLifetimeTimeoutTLS = new Map();
     this.agent = agent;
     this.server = new mosca.Server(moscaSettings);
 
@@ -311,21 +313,26 @@ class MqttBackend {
     logger.debug(`Checking its certificates...`, TAG);
     if (client.connection.stream instanceof tls.TLSSocket) {
       const clientCertificate = client.connection.stream.getPeerCertificate();
+
       if (
         !clientCertificate.hasOwnProperty("subject") ||
         !clientCertificate.subject.hasOwnProperty("CN") ||
         clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
+
         // reject client connection
         logger.debug(`... client certificate is invalid.`, TAG);
         logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
         callback(null, false);
+
         return;
       }
     }
     logger.debug(`... client certificate was successfully retrieved and it is valid.`, TAG);
 
+
     // Condition 3: Device exists in dojot
     logger.debug(`Checking whether this device exists in dojot...`, TAG);
+
     this.agent
       .getDevice(ids.device, ids.tenant)
       .then(() => {
@@ -340,7 +347,13 @@ class MqttBackend {
         //authorize client connection
         logger.debug(`... cache entry added.`, TAG);
         logger.info(`Connection authorized for ${client.id}.`, TAG);
+
+        this._tlsIdleTimeout(client, ids.tenant, ids.device);
+
+        this._tlsMaxLifetime(client, ids.tenant, ids.device);
+
         callback(null, true);
+
       })
       .catch(error => {
         //reject client connection
@@ -353,7 +366,49 @@ class MqttBackend {
   }
 
 
-  /**
+    /**
+     * If the connection is Inactivity for a time defined by the environment variable
+     * (The idle timeout for a connection in ms) will disconnect .
+     * @param client
+     * @param tenant
+     * @param deviceId
+     * @private
+     */
+    _tlsIdleTimeout(client, tenant, deviceId) {
+      const idleTimeout = defaultConfig.mosca_tls.idleTimeout;
+      if (idleTimeout) {
+        logger.debug(`Set timeout ${idleTimeout} ms by Idle for ${client.id} ...`, TAG);
+        client.connection.stream.setTimeout(idleTimeout);
+        client.connection.stream.on('timeout', () => {
+          logger.info(`Timeout for Idle connection ${client.id}.`, TAG);
+          this.disconnectDevice(tenant, deviceId);
+        });
+        logger.debug(`... adding timeout  by Idle was successfully for ${client.id}.`, TAG);
+      }
+    }
+
+    /**
+     * If the connection is open for a time defined by the environment variable
+     * (Maximum lifetime of a connection in ms )  will disconnect .
+     *
+     * @param client
+     * @param tenant
+     * @param deviceId
+     * @private
+     */
+    _tlsMaxLifetime(client, tenant, deviceId) {
+      const maxLifetime = defaultConfig.mosca_tls.maxLifetime;
+      if (maxLifetime) {
+        logger.debug(`Set timeout ${maxLifetime} ms by lifetime for ${client.id} ...`, TAG);
+        this.maxLifetimeTimeoutTLS.set(client.id, setTimeout(() => {
+          logger.info(`TlS connection disconnect  ${client.id} because of Max Lifetime.`, TAG);
+          this.disconnectDevice(tenant, deviceId);
+        }, maxLifetime));
+        logger.debug(`... adding timeout  by lifetime was successfully for ${client.id}.`, TAG);
+      }
+    }
+
+    /**
    * Check authorization when a MQTT client wants to publish something or
    * subscribe to a particular topic.
    *
@@ -432,7 +487,7 @@ class MqttBackend {
           logger.warn(`Connection was rejected and device doesn't exist. Really?`, TAG);
           logger.warn(`Error is: ${error}.`, TAG);
           callback(null, false);
-          return;
+
         });
     }
 
@@ -489,6 +544,14 @@ class MqttBackend {
       logger.debug(`Removing it from cache...`, TAG);
       this.cache.delete(key);
       logger.debug(`... device was successfully removed from cache.`, TAG);
+
+      //If there is a scheduled timeout cancel it.
+      if(this.maxLifetimeTimeoutTLS.has(key)) {
+        logger.debug(`Removing timeout by lifetime for ${key} ...`, TAG);
+        clearTimeout(this.maxLifetimeTimeoutTLS.get(key));
+        this.maxLifetimeTimeoutTLS.delete(key);
+        logger.debug(`... removing timeout  by lifetime was successfully for ${key}.`, TAG);
+      }
     }
     // (backward compatibility)
     else {
