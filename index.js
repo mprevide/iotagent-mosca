@@ -4,56 +4,46 @@ var iotalib = require('@dojot/iotagent-nodejs');
 var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
-var pjson = require('./package.json');
-var HealthChecker = require('@dojot/healthcheck').HealthChecker;
-var DataTrigger = require('@dojot/healthcheck').DataTrigger;
-var endpoint = require('@dojot/healthcheck').getHTTPRouter;
-
-const configHealth = {
-  description: "IoT agent - MQTT",
-  releaseId: "0.3.0-nightly20181030 ",
-  status: "pass",
-  version: pjson.version,
+var AgentHealthChecker = require("./healthcheck");
+var redis = require("redis");
+var lastMetricsInfo = {
+  connectedClients: null,
+  connectionsLoad1min: null,
+  connectionsLoad5min: null,
+  connectionsLoad15min: null,
+  messagesLoad1min: null,
+  messagesLoad5min: null,
+  messagesLoad15min: null
 };
-const healthChecker = new HealthChecker(configHealth);
-
-const monitor = {
-  componentId: "service-memory",
-  componentName: "total memory used",
-  componentType: "system",
-  measurementName: "memory",
-  observedUnit: "MB",
-  status: "pass",
-};
-const collector = (trigger = DataTrigger) => {
-  // tslint:disable-next-line:no-console
-  logger.debug('Cheking memory.');
-  const used = process.memoryUsage().heapUsed / 1024 / 1024;
-  const round = Math.round(used * 100) / 100
-  if (round > 30) {
-    trigger.trigger(round, "fail", "i too high");
-  } else {
-    trigger.trigger(round, "pass", "I'm ok");
-  }
-
-  return round;
-};
-
-healthChecker.registerMonitor(monitor, collector, 10000);
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
 var iota = new iotalib.IoTAgent();
 iota.init().then(() => {
+  const redisClient = redis.createClient(`redis://${config.backend_host}:${config.backend_port}`);
+  const healthChecker = new AgentHealthChecker(iota.messenger, redisClient);
+  healthChecker.init();
+
 logger.debug("... IoT agent was initialized");
 
 logger.debug("Initializing configuration endpoints...");
 var bodyParser = require("body-parser");
 var express = require("express");
 var app = express();
+
+//service to get last metrics infos
+app.get('/iotagent-mqtt/metrics', (req, res) => {
+    if (lastMetricsInfo) {
+        return res.status(200).json(lastMetricsInfo);
+    } else {
+        logger.debug(`Something unexpected happened`);
+        return res.status(500).json({status: 'error', errors: []});
+    }
+});
+
 app.use(bodyParser.json());
-app.use(endpoint(healthChecker));
-app.use(dojotLogger.getHTTPRouter())
+app.use(healthChecker.router);
+app.use(dojotLogger.getHTTPRouter());
 app.listen(10001, () => {
     logger.info(`Listening on port 10001.`);
 });
@@ -71,7 +61,7 @@ const cache = new Map();
 // Mosca Settings
 var moscaBackend = {
   type: 'redis',
-  redis: require('redis'),
+  redis: redis,
   db: 12,
   port: config.backend_port,
   return_buffers: true, // to handle binary payloads
@@ -111,6 +101,7 @@ var moscaSettings = {
     host: moscaBackend.host
   },
   interfaces: moscaInterfaces,
+  stats: true,
   logger: { name: 'MoscaServer', level: 'info' }
 };
 
@@ -139,7 +130,7 @@ function parseClientIdOrTopic(clientId, topic) {
 
   // fallback to topic-based id scheme
   if (topic && (typeof topic === 'string')) {
-    let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/)
+    let parsedTopic = topic.match(/^\/([^/]+)\/([^/]+)/);
     if (parsedTopic) {
       return ({ tenant: parsedTopic[1], device: parsedTopic[2] });
     }
@@ -201,9 +192,26 @@ function authenticate(client, username, password, callback) {
   });
 }
 
+  async function checkDeviceExist(ids, cacheEntry, client) {
+    let deviceExist = false;
+    await iota.getDevice(ids.device, ids.tenant).then((device) => {
+      logger.debug(`Got device ${JSON.stringify(device)}`);
+      // add device to cache
+      cacheEntry.tenant = ids.tenant;
+      cacheEntry.deviceId = ids.device;
+      cache.set(client.id, cacheEntry);
+      deviceExist = true;
+    }).catch((error) => {
+      //reject
+      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
+
+    });
+    return deviceExist;
+  }
+
 // Function to authourize client to publish to
 // topic: {tenant}/{deviceId}/attrs
-function authorizePublish(client, topic, payload, callback) {
+async function authorizePublish(client, topic, payload, callback) {
   logger.debug(`Authorizing MQTT client ${client.id} to publish to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
@@ -221,24 +229,22 @@ function authorizePublish(client, topic, payload, callback) {
     return;
   }
 
+  let deviceExist = true;
+
   // (backward compatibility)
   if(cacheEntry.deviceId === null) {
     // Device exists in dojot
-    iota.getDevice(ids.device, ids.tenant).then((device) => {
-      logger.debug(`Got device ${JSON.stringify(device)}`);
-      // add device to cache
-      cacheEntry.tenant = ids.tenant;
-      cacheEntry.deviceId = ids.device;
-      cache.set(client.id, cacheEntry);
-    }).catch((error) => {
-      //reject
-      callback(null, false);
-      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to publish to unknown
-      device ${ids.device}.`);
-      return;
-    });
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client);
 
+  }
+
+  //stop publish
+  if (!deviceExist) {
+    callback(null, false);
+    logger.debug(`Device ${ids.device} doest exist `);
+    logger.warn(`Client ${client.id} trying to publish on behalf of
+    devices: ${ids.device} and ${cacheEntry.deviceId}.`);
+    return;
   }
 
   // a client is not allowed to publish on behalf of more than one device
@@ -269,11 +275,11 @@ function authorizePublish(client, topic, payload, callback) {
 
 // Function to authorize client to subscribe to
 // topic: {tenant}/{deviceId}/config
-function authorizeSubscribe(client, topic, callback) {
+async function authorizeSubscribe(client, topic, callback) {
   logger.debug(`Authorizing client ${client.id} to subscribe to ${topic}`);
 
   let cacheEntry = cache.get(client.id);
-  if(!cacheEntry) {
+  if (!cacheEntry) {
     // If this happens, there is something very wrong!!
     callback(null, false);
     logger.error(`Unexpected client ${client.id} trying to subscribe
@@ -290,30 +296,26 @@ function authorizeSubscribe(client, topic, callback) {
     return;
   }
 
+  let deviceExist = true;
   // (backward compatibility)
-  if(cacheEntry.deviceId === null) {
-
+  if (cacheEntry.deviceId === null) {
     // Device exists in dojot
-    iota.getDevice(ids.device, ids.tenant).then((device) => {
-      logger.debug(`Got device ${JSON.stringify(device)}`);
-      // add device to cache
-      cacheEntry.tenant = ids.tenant;
-      cacheEntry.deviceId = ids.device;
-      cache.set(client.id, cacheEntry);
-    }).catch((error) => {
-      //reject
-      callback(null, false);
-      logger.debug(`Got error ${error} while trying to get device ${ids.tenant}:${ids.device}.`);
-      logger.warn(`Client ${client.id} trying to subscribe to unknown
-      device ${ids.device}.`);
-      return;
-    });
+    deviceExist = await checkDeviceExist(ids, cacheEntry, client);
 
   }
 
+  //stop publish
+  if (!deviceExist) {
+    callback(null, false);
+    logger.debug(`Device ${ids.device} doest exist `);
+    logger.warn(`Client ${client.id} trying to subscribe to unknown
+      device ${ids.device}.`);
+    return;
+  }
+
   // a client is not allowed to subscribe on behalf of more than one device
-  if(ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
-    ids.device !== cacheEntry.deviceId) {
+  if (ids.tenant !== cacheEntry.tenant && cacheEntry.deviceId !== null &&
+      ids.device !== cacheEntry.deviceId) {
     //reject
     callback(null, false);
     logger.warn(`Client ${client.id} trying to subscribe on behalf of
@@ -352,9 +354,104 @@ server.on('clientDisconnected', function (client) {
 // (from device to dojot)
 server.on('published', function (packet, client) {
 
-  // ignore meta (internal) topics
-  if ((packet.topic.split('/')[0] == '$SYS') ||
-    (client === undefined) || (client === null)) {
+  function getTopicParameter(topic, index) {
+    return topic.split('/')[index];
+  }
+
+  function preparePayloadObject(payloadObject, payloadTopic, payloadValue) {
+    payloadObject[`${payloadTopic}`] = `${payloadValue}`;
+    logger.debug(`Published metric: ${payloadTopic}=${payloadValue}`);
+  }
+
+
+  //TODO: support only ISO string???
+  function setMetadata (data) {
+    let metadata = {};
+    if ("timestamp" in data) {
+      metadata = { timestamp: 0 };
+      // If it is a number, just copy it. Probably Unix time.
+      if (typeof data.timestamp === "number") {
+        if (!isNaN(data.timestamp)) {
+          metadata.timestamp = data.timestamp;
+        }
+        else {
+          logger.warn("Received an invalid timestamp (NaN)");
+          metadata = {};
+        }
+      }
+      else {
+        // If it is a ISO string...
+        const parsed = Date.parse(data.timestamp);
+        if (!isNaN(parsed)) {
+          metadata.timestamp = parsed;
+        }
+        else {
+          // Invalid timestamp.
+          metadata = {};
+        }
+      }
+    }
+
+    return metadata;
+  }
+
+  const topicType = getTopicParameter(packet.topic, 0);
+
+  // publish metrics topics
+  if ( topicType === '$SYS') {
+
+    const topic = getTopicParameter(packet.topic, 2);
+    const topicMetrics = getTopicParameter(packet.topic, 3);
+    const topicConnectionsInterval = getTopicParameter(packet.topic, 4);
+    const topicMessagesInterval = getTopicParameter(packet.topic, 5);
+    const payload = packet.payload.toString();
+
+    switch (topic) {
+      case 'clients':
+        if(topicMetrics === 'connected') {
+          preparePayloadObject(lastMetricsInfo, 'connectedClients', payload);
+        }
+        break;
+
+      case 'load':
+        if(topicMetrics === 'connections') {
+          switch (topicConnectionsInterval) {
+            case '1min':
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad1min', payload);
+              break;
+
+            case '5min':
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad5min', payload);
+              break;
+
+            default:
+              preparePayloadObject(lastMetricsInfo, 'connectionsLoad15min', payload);
+            break;
+          }
+        }
+
+        if(topicMetrics === 'publish') {
+          switch (topicMessagesInterval) {
+            case '1min':
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad1min', payload);
+              break;
+
+            case '5min':
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad5min', payload);
+              break;
+
+            default:
+              preparePayloadObject(lastMetricsInfo, 'messagesLoad15min', payload);
+              break;
+          }
+        }
+        break;
+    }
+
+    return;
+  }
+
+  if ((client === undefined) || (client === null)) {
     logger.debug('ignoring internal message', packet.topic, client);
     return;
   }
@@ -371,32 +468,8 @@ server.on('published', function (packet, client) {
 
   logger.debug(`Published data: ${packet.payload.toString()}, client: ${client.id}, topic: ${packet.topic}`);
 
-  //TODO: support only ISO string???
-  let metadata = {};
-  if ("timestamp" in data) {
-    metadata = { timestamp: 0 };
-    // If it is a number, just copy it. Probably Unix time.
-    if (typeof data.timestamp === "number") {
-      if (!isNaN(data.timestamp)) {
-        metadata.timestamp = data.timestamp;
-      }
-      else {
-        logger.warn("Received an invalid timestamp (NaN)");
-        metadata = {};
-      }
-    }
-    else {
-      // If it is a ISO string...
-      const parsed = Date.parse(data.timestamp);
-      if (!isNaN(parsed)) {
-        metadata.timestamp = parsed;
-      }
-      else {
-        // Invalid timestamp.
-        metadata = {};
-      }
-    }
-  }
+  let metadata = setMetadata(data);
+
   //send data to dojot broker
   let ids = parseClientIdOrTopic(client.id, packet.topic);
   iota.updateAttrs(ids.device, ids.tenant, data, metadata);
@@ -405,7 +478,7 @@ server.on('published', function (packet, client) {
 // Fired when a device.configure event is received
 // (from dojot to device)
 iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
-  logger.debug('Got configure event from Device Manager', event)
+  logger.debug('Got configure event from Device Manager', event);
   // device id
   let deviceId = event.data.id;
   delete event.data.id;
@@ -425,8 +498,8 @@ iota.messenger.on('iotagent.device', 'device.configure', (tenant, event) => {
   };
 
   // send data to device
-  logger.debug('Publishing', message)
-  server.publish(message, () => { logger.debug('Message out!!') });
+  logger.debug('Publishing', message);
+  server.publish(message, () => { logger.debug('Message out!!');});
 
 });
 
@@ -460,7 +533,7 @@ const disconnectCachedDevice = (event) => {
     }
     cache.delete(clientId);
   }
-}
+};
 
 // // Fired when a device.remove event is received
 iota.messenger.on('iotagent.device', 'device.remove', (tenant, event) => {
