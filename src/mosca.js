@@ -375,15 +375,17 @@ class MqttBackend {
      * @private
      */
     _tlsIdleTimeout(client, tenant, deviceId) {
-      const idleTimeout = defaultConfig.mosca_tls.idleTimeout;
-      if (idleTimeout) {
-        logger.debug(`Set timeout ${idleTimeout} ms by Idle for ${client.id} ...`, TAG);
-        client.connection.stream.setTimeout(idleTimeout);
-        client.connection.stream.on('timeout', () => {
-          logger.info(`Timeout for Idle connection ${client.id}.`, TAG);
-          this.disconnectDevice(tenant, deviceId);
-        });
-        logger.debug(`... adding timeout  by Idle was successfully for ${client.id}.`, TAG);
+      if (client.connection.stream instanceof tls.TLSSocket) {
+        const idleTimeout = defaultConfig.mosca_tls.idleTimeout;
+        if (idleTimeout) {
+          logger.debug(`Set timeout ${idleTimeout} ms by Idle for ${client.id} ...`, TAG);
+          client.connection.stream.setTimeout(idleTimeout);
+          client.connection.stream.on('timeout', () => {
+            logger.info(`Timeout for Idle connection ${client.id}.`, TAG);
+            this.disconnectDevice(tenant, deviceId);
+          });
+          logger.debug(`... adding timeout  by Idle was successfully for ${client.id}.`, TAG);
+        }
       }
     }
 
@@ -397,14 +399,16 @@ class MqttBackend {
      * @private
      */
     _tlsMaxLifetime(client, tenant, deviceId) {
-      const maxLifetime = defaultConfig.mosca_tls.maxLifetime;
-      if (maxLifetime) {
-        logger.debug(`Set timeout ${maxLifetime} ms by lifetime for ${client.id} ...`, TAG);
-        this.maxLifetimeTimeoutTLS.set(client.id, setTimeout(() => {
-          logger.info(`TlS connection disconnect  ${client.id} because of Max Lifetime.`, TAG);
-          this.disconnectDevice(tenant, deviceId);
-        }, maxLifetime));
-        logger.debug(`... adding timeout  by lifetime was successfully for ${client.id}.`, TAG);
+      if (client.connection.stream instanceof tls.TLSSocket) {
+        const maxLifetime = defaultConfig.mosca_tls.maxLifetime;
+        if (maxLifetime) {
+          logger.debug(`Set timeout ${maxLifetime} ms by lifetime for ${client.id} ...`, TAG);
+          this.maxLifetimeTimeoutTLS.set(client.id, setTimeout(() => {
+            logger.info(`TlS connection disconnect  ${client.id} because of Max Lifetime.`, TAG);
+            this.disconnectDevice(tenant, deviceId);
+          }, maxLifetime));
+          logger.debug(`... adding timeout  by lifetime was successfully for ${client.id}.`, TAG);
+        }
       }
     }
 
