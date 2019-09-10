@@ -23,12 +23,15 @@ const moscaSetup = require("../moscaSetup");
 //
 jest.mock("mosca");
 jest.mock("@dojot/iotagent-nodejs");
+jest.mock('fs');
 
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
 
 describe("Mosca backend", () => {
     beforeEach(() => {
         mosca.Server.mockClear();
         jest.resetModules();
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
     });
     afterEach(() => {
         mosca.Server.mockReset();

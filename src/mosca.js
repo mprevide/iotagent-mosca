@@ -1,4 +1,5 @@
 "use strict";
+const fs = require('fs');
 const mosca = require("mosca");
 const tls = require("tls");
 const defaultConfig = require("./config");
@@ -25,6 +26,7 @@ class MqttBackend {
         keyPath: config.mosca_tls.key,
         certPath: config.mosca_tls.cert,
         caPaths: [config.mosca_tls.ca],
+        crl: [fs.readFile(config.mosca_tls.crl)],
         requestCert: true, // enable requesting certificate from clients
         rejectUnauthorized: true // only accept clients with valid certificate
       }

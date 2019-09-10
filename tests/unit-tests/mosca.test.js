@@ -11,7 +11,9 @@ const mosca = new Mosca.MqttBackend();
 
 jest.mock('tls');
 jest.mock('@dojot/iotagent-nodejs');
+jest.mock('fs');
 
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
 
 describe("Testing Mosca functions", () => {
 
@@ -19,6 +21,7 @@ describe("Testing Mosca functions", () => {
         jest.resetModules();
         jest.clearAllMocks();
         jest.resetAllMocks();
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
     });
 
     test("Should define the attribute agentCallback as the string passed as argument", () => {
