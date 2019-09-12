@@ -32,9 +32,9 @@ config.mosca_tls = {
     caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA',
     //If null the CRL will not be updated after initialization
     //Read up on cron patterns here (http://crontab.org/)
-    //By default will be null updated every 2 hours
+    //By default will be updated every 2 hours, if null disabled
     //Eg. : '0 */2 * * *' -> every 2 hours
-    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIME || null,
+    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIME || '0 */2 * * *',
     maxLifetime: _zeroToDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
     idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT, 1800000),
 };

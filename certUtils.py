@@ -9,11 +9,11 @@ from OpenSSL import crypto
 
 # the following functions are related to file manipulation
 # these functions  may throw crypto.Error
+
 def saveCRL(filename, rawCRL):
     crl = ("-----BEGIN X509 CRL-----\n"
             + '\n'.join(rawCRL[i:i+64] for i in range(0, len(rawCRL), 64)) #X509 -each line have 64 bytes
             + "\n-----END X509 CRL-----\n")
-
     crypto.load_crl(crypto.FILETYPE_PEM, crl)
 
     with open(filename, "w") as crlFile:

@@ -33,11 +33,8 @@ class Certificates {
             try {
                 this.crlPEM = fs.readFile(config.mosca_tls.crl);
             } catch (err) {
-                if (err.code === 'ENOENT') {
-                    logger.warn(`CRL File not found`, TAG);
-                } else {
-                    throw err;
-                }
+                logger.warn(`CRL File not found`, TAG);
+                throw err;
             }
         } else if (config.mosca_tls.crlUpdateTime) {
             this.updateCRL();
@@ -59,9 +56,7 @@ class Certificates {
      * @private
      */
     static _formatCRLPEM(rawCRL) {
-        return `-----BEGIN X509 CRL-----\n${
-            Certificates._formatPEM(rawCRL)
-            }-----END X509 CRL-----\n`;
+        return `-----BEGIN X509 CRL-----\n${Certificates._formatPEM(rawCRL)}-----END X509 CRL-----\n`;
     }
 
     /**
@@ -168,8 +163,6 @@ class Certificates {
                 } else {
                     logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
                     logger.debug(`HTTP response ERROR ${response}`, TAG);
-
-
                     reject(new Error(`HTTP code ${response.status} to access ${url}`));
                 }
             }).catch(error => {
