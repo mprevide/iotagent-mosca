@@ -33,7 +33,7 @@ try {
     logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
     const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function () {
       Certificates.updateCRL().then(() => {
-        logger.debug(`... Succeeded to cron to update CRL .`, TAG);
+        logger.info(`... Succeeded to cron to update CRL .`, TAG);
       }).catch(error => {
         logger.debug(`... Failed to cron to update CRL  (${error}).`, TAG);
         //kill process
