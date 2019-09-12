@@ -6,7 +6,7 @@ const clientSetup = {
     close() {
         return true;
     },
-    deviceId: 'u86fda2'
+    deviceId: 'u86fda'
 };
 
 const packetSetup = {

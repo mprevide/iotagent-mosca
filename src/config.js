@@ -3,6 +3,14 @@
 /* private */
 const unsecured_mode = (mode) => ((mode || false) && (mode.toLowerCase().trim() === "true" || Number(mode) > 0));
 
+const _zeroToDisabled = (envValue, defaultValue) => {
+    if (envValue === 0 || envValue === '0') { return null; }
+    else if (Number(envValue)) {
+        return Number(envValue);
+    }
+    return defaultValue;
+};
+
 /* public */
 const config = {};
 
@@ -26,7 +34,9 @@ config.mosca_tls = {
     //Read up on cron patterns here (http://crontab.org/)
     //By default will be null updated every 2 hours
     //Eg. : '0 */2 * * *' -> every 2 hours
-    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIME || null
+    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIME || null,
+    maxLifetime: _zeroToDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
+    idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT, 1800000),
 };
 
 config.healthcheck = {

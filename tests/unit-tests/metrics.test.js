@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 "use strict";
 
 /**
@@ -30,6 +31,7 @@ function get(url, body) {
 
 describe("Testing metrics functions", () => {
     beforeEach(() => jest.resetModules());
+
     afterEach(() => {
         stopApp();
     });
@@ -59,13 +61,7 @@ describe("Testing metrics functions", () => {
             "messagesLoad5min": 0,
             "messagesLoad15min": 0
         });
-
-        metricStore.lastMetricsInfo = null;
-        app.use(moscaMestrics.getHTTPRouter(metricStore));
-        response = await get('/iotagent-mqtt/metrics', '');
-        expect(response.status).toEqual(500);
     });
-
 
     it("Should return NULL because function expects two strings as argument", () => {
         const metrics = new moscaMestrics.Metrics();
@@ -74,7 +70,10 @@ describe("Testing metrics functions", () => {
 
         metrics.preparePayloadObject(0);
         expect(metrics.lastMetricsInfo.connectedClients).toBeNull();
+    });
 
+    it("Should return NULL because function expects two strings as argument", () => {
+        const metrics = new moscaMestrics.Metrics();
         const metricsAttribute = "connectedClients";
         metrics.preparePayloadObject(metricsAttribute, 20);
         expect(metrics.lastMetricsInfo[`${metricsAttribute}`]).toEqual("20");
