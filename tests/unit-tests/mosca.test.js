@@ -231,13 +231,13 @@ describe("Testing Mosca functions", () => {
 
 
         packet.topic = '$SYS/admin/6dc341/attrs';
-        packet.payload = {'message': 'ashfhasdjfkasdfaksfdasfasdfasdhfasdfasdhfhasdfhasdfasdfhkasdhflasdfhasdhfasdjfiopasdfjnasfgasdfjasdfoasdfhasdlflasdfjlasdlçfjklçasdfoasfgakljkl'};
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
         mosca.agentCallbackInternal = jest.fn();
         expect(mosca._processMessage(packet, null)).toBeUndefined();
 
 
         packet.topic = '$SYS/admin/6dc341/attrs';
-        packet.payload = {'message': 'xxxxxxxxxxxxxxxxxxxxxx'};
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
         config.DojotToDevicePayloadSize = 0;
         mosca.agentCallbackInternal = jest.fn();
         expect(mosca._processMessage(packet, null)).toBeUndefined();
@@ -246,7 +246,7 @@ describe("Testing Mosca functions", () => {
 
         packet.topic = '';
         config.DojotToDevicePayloadSize = 256000000;
-        packet.payload = {'message': 'xxxxxxxxxxxxxxxxxxxxxx'};
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
         config.deviceToDojotPayloadSize =  0;
         mosca.agentCallbackInternal = jest.fn();
         expect(mosca._processMessage(packet, client)).toBeUndefined();
