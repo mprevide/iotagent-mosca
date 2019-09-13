@@ -41,7 +41,7 @@ describe("Certificates", () => {
     });
 
 
-    it("_callbackOpenSSL with revoked", () => {
+    it("_callbackOpenSSL with revoked", (done) => {
         const Certificates = require('../../src/certificates.js');
         expect(Certificates).toBeDefined();
 
@@ -55,6 +55,15 @@ describe("Certificates", () => {
 
         expect(Certificates.revokeSerialNumberSet.size).toBe(3);
 
+        try {
+            const error = [];
+            error[1] = 'x';
+            testCallBack(error, null);
+        }catch (e) {
+            done();
+        }
+
+        
     });
 
     it("_callbackOpenSSL without revoked", async () => {
