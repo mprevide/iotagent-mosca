@@ -361,4 +361,9 @@ describe("Testing Mosca functions", () => {
         expect(client.close).not.toHaveBeenCalled();
         expect(cacheEntry.deviceId).toBeUndefined();
     });
+
+    test("_setMoscaCallbacks", () => {
+        const newMosca = new Mosca.MqttBackend(agent);
+        newMosca._setMoscaCallbacks();
+    });
 });
