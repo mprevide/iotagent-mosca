@@ -1,3 +1,4 @@
+"use strict";
 const fs = jest.genMockFromModule("fs");
 let mockFiles = Object.create(null);
 
@@ -8,7 +9,11 @@ function __createMockFiles(newMockFiles) {
 }
 
 function readFile(pathToDirectory) {
-    return mockFiles[pathToDirectory];
+    if (!mockFiles || Object.entries(mockFiles).length === 0 && mockFiles.constructor === Object) {
+        throw "ENOENT";
+    }else{
+        return mockFiles[pathToDirectory];
+    }
 }
 
 function exists(pathToDirectory) {

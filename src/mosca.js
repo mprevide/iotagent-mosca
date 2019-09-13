@@ -317,27 +317,27 @@ class MqttBackend {
       const clientCertificate = client.connection.stream.getPeerCertificate();
 
       if (
-        !clientCertificate.hasOwnProperty("subject") ||
-        !clientCertificate.subject.hasOwnProperty("CN") ||
-        clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
+          !clientCertificate.hasOwnProperty("subject") ||
+          !clientCertificate.subject.hasOwnProperty("CN") ||
+          clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
 
         // reject client connection
         logger.debug(`... client certificate is invalid.`, TAG);
-        logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
+        logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`, TAG);
         callback(null, false);
 
         return;
-          //If null the CRL will not be updated after initialization, so verification is not required.
-          } else if (defaultConfig.mosca_tls.crlUpdateTime &&
-              (!clientCertificate.hasOwnProperty("serialNumber") ||
+        //If null the CRL will not be updated after initialization, so verification is not required.
+      } else if (defaultConfig.mosca_tls.crlUpdateTime &&
+          (!clientCertificate.hasOwnProperty("serialNumber") ||
               Certificates.hasRevoked(clientCertificate.serialNumber))) {
-              // reject client connection
-              logger.debug(`... client certificate has been Revoked.`, TAG);
-              logger.warn(`Connection rejected for ${client.id} due to revoked client certificate.`);
-              callback(null, false);
-              return;
-          }
+        // reject client connection
+        logger.debug(`... client certificate has been Revoked or without serialNumber.`, TAG);
+        logger.warn(`Connection rejected for ${client.id} due to revoked client certificate or without serialNumber.`, TAG);
+        callback(null, false);
+        return;
       }
+    }
     logger.debug(`... client certificate was successfully retrieved and it is valid.`, TAG);
 
 

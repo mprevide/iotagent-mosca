@@ -8,11 +8,11 @@ const agent = require("../moscaSetup").agentSetup;
 const TLSSocket = require("tls").TLSSocket;
 const ioTAgent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = new Mosca.MqttBackend();
-
+const mockCert = require("../certMocks");
 jest.mock('fs');
 jest.mock('tls');
 
-const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': mockCert.mockCrlWithRevoke.PEM};
 
 jest.mock('tls');
 jest.mock('@dojot/iotagent-nodejs');
@@ -77,13 +77,42 @@ describe("Testing Mosca functions", () => {
         spy.mockRestore();
     });
 
+    test("Testing  authenticate : for a authorized client, find device and without serialnumber (revoked)", (done) => {
+
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: client.id}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
+        ioTAgent.mockImplementation(() => {
+            const rv = Object.create(ioTAgent.prototype);
+            rv.getDevice = function (deviceId, tenantId) {
+                return Promise.resolve();
+            };
+            return rv;
+        });
+
+        const mosca2 = new Mosca.MqttBackend(new ioTAgent());
+
+        mosca2.authenticate(client, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
+            done();
+        });
+
+    });
+
 
     test("Testing  authenticate : for a authorized client and find device", (done) => {
 
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: client.id}};
+                return {subject: {CN: client.id}, serialNumber: 'XXXXXXX'};
             };
             return rv;
         });
@@ -291,7 +320,7 @@ describe("Testing Mosca functions", () => {
         newMosca.cache.set(client.id, {tenant: 'admin', deviceId: 'u86fda', client: client});
         const cacheEntry = newMosca.cache.get(client.id);
 
-        newMosca.maxLifetimeTimeoutTLS.set(client.id,jest.fn());
+        newMosca.maxLifetimeTimeoutTLS.set(client.id, jest.fn());
         let disconnect = newMosca.disconnectDevice('admin', 'u86fda');
         expect(disconnect).toBeDefined();
         expect(disconnect.deviceId).toEqual('u86fda');

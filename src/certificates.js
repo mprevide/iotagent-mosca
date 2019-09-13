@@ -169,6 +169,7 @@ class Certificates {
                 logger.debug(`Failed to execute http request (${error}).`);
                 reject(error);
             });
+
             logger.info(`... update CRL finish`, TAG);
         });
     }
