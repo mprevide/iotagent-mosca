@@ -10,15 +10,22 @@
 
 const App = require("../../src/app");
 const express = require("express");
+const healthCheck = require('@dojot/healthcheck');
+const metrics = require("../../src/metrics");
 
 //
 // Mocking dependencies
 //
 jest.mock("express");
+jest.mock("@dojot/healthcheck");
+jest.mock("../../src/metrics");
 
 describe("Testing app functions", () => {
-    const listen = jest.fn();
+    const listen = jest.fn(() => {
+        App.isInitialized = true
+    });
     const use = jest.fn();
+    const close = jest.fn();
     beforeEach(() => {
         express.Router.mockImplementation(() => {
             const router = Object.create(express.Router.prototype);
@@ -38,9 +45,18 @@ describe("Testing app functions", () => {
     });
 
     it("Should not throw an error", () => {
-        App.initApp(null, null);
+        App.initApp({}, {});
         expect(use).toBeCalled();
         expect(listen).toBeCalled();
+    });
+
+    it("Stop", () => {
+        const mockHttp = {
+            close: jest.fn(),
+        };
+        App.setInitialized(true);
+        App.setHttpServer(mockHttp);
+        App.stopApp();
     });
 
 });

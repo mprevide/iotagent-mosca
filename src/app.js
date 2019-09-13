@@ -12,7 +12,24 @@ let isInitialized = false;
 let httpServer;
 let app = null;
 
+function setInitialized(_isInitialized) {
+    isInitialized = _isInitialized;
+}
+
+function getInitialized() {
+    return isInitialized;
+}
+
+function setHttpServer(_httpServer) {
+    httpServer = _httpServer;
+}
+
+function getHttpServer() {
+    return httpServer;
+}
+
 function initApp(healthChecker, metricStore) {
+    console.log('initApp isInitialized', isInitialized);
     app = express();
     app.use(bodyParser.json());
     if (healthChecker) {
@@ -25,21 +42,23 @@ function initApp(healthChecker, metricStore) {
 
     logger.debug("Initializing configuration endpoints...", TAG);
 
-    httpServer = app.listen(10001, () => {
+    setHttpServer( app.listen(10001, () => {
         logger.info(`Listening on port 10001.`, TAG);
-        isInitialized = true;
-    });
+        setInitialized(true);
+    }));
+
     logger.debug("... configuration endpoints were initialized", TAG);
 }
 
 function stopApp() {
-    if (isInitialized) {
-        httpServer.close();
+    if (getInitialized()) {
+        getHttpServer().close();
         isInitialized = false;
     }
 }
 
+
 module.exports = {
-    initApp, stopApp, app
+    initApp, stopApp, app, setInitialized, setHttpServer
 };
 
