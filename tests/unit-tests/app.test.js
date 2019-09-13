@@ -25,7 +25,7 @@ describe("Testing app functions", () => {
         App.isInitialized = true
     });
     const use = jest.fn();
-    const close = jest.fn();
+
     beforeEach(() => {
         express.Router.mockImplementation(() => {
             const router = Object.create(express.Router.prototype);
