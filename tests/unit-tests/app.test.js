@@ -22,7 +22,7 @@ jest.mock("../../src/metrics");
 
 describe("Testing app functions", () => {
     const listen = jest.fn(() => {
-        App.isInitialized = true
+        App.setInitialized(true) ;
     });
     const use = jest.fn();
 

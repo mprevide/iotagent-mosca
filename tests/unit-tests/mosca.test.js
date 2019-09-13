@@ -243,7 +243,7 @@ describe("Testing Mosca functions", () => {
         expect(mosca._processMessage(packet, null)).toBeUndefined();
 
 
-        
+
         packet.topic = '';
         config.DojotToDevicePayloadSize = 256000000;
         packet.payload = {'message': 'xxxxxxxxxxxxxxxxxxxxxx'};
@@ -257,6 +257,7 @@ describe("Testing Mosca functions", () => {
         config.DojotToDevicePayloadSize = 256000000;
         config.deviceToDojotPayloadSize =  256000000;
         mosca.agentCallbackInternal = jest.fn();
+        mosca.agentCallback = jest.fn((tenant, device, data) =>{});
         expect(mosca._processMessage(packet, client)).toBeUndefined();
     });
 
