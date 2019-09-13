@@ -223,21 +223,19 @@ describe("Testing Mosca functions", () => {
 
     test("Should split a string passed as first argument and return a debug message", () => {
 
-        //218 catch
         mosca.onMessage('message');
         mosca._processMessage(packet, client);
 
-        //202
         expect(mosca.agentCallback).toEqual("message");
         expect(mosca._processMessage(packet, null)).toBeUndefined();
 
-        //192
+
         packet.topic = '$SYS/admin/6dc341/attrs';
         packet.payload = {'message': 'ashfhasdjfkasdfaksfdasfasdfasdhfasdfasdhfhasdfhasdfasdfhkasdhflasdfhasdhfasdjfiopasdfjnasfgasdfjasdfoasdfhasdlflasdfjlasdlçfjklçasdfoasfgakljkl'};
         mosca.agentCallbackInternal = jest.fn();
         expect(mosca._processMessage(packet, null)).toBeUndefined();
 
-        //196
+
         packet.topic = '$SYS/admin/6dc341/attrs';
         packet.payload = {'message': 'xxxxxxxxxxxxxxxxxxxxxx'};
         config.DojotToDevicePayloadSize = 0;
@@ -245,7 +243,7 @@ describe("Testing Mosca functions", () => {
         expect(mosca._processMessage(packet, null)).toBeUndefined();
 
 
-        //210
+        
         packet.topic = '';
         config.DojotToDevicePayloadSize = 256000000;
         packet.payload = {'message': 'xxxxxxxxxxxxxxxxxxxxxx'};
