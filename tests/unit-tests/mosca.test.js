@@ -141,7 +141,7 @@ describe("Testing Mosca functions", () => {
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: client.id}};
+                return {subject: {CN: client.id} ,  serialNumber: 'XXXXXXXxxxx'};
             };
             return rv;
         });
