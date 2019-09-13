@@ -1,6 +1,6 @@
 "use strict";
 
-const mockCert = require("../certMocks");
+const mockCert = require("./certMocks");
 
 const mockCrlNoRevokeRevoke = mockCert.mockCrlNoRevokeRevoke;
 const mockCrlWithRevoke = mockCert.mockCrlWithRevoke;

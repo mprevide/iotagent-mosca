@@ -1,14 +1,14 @@
 /* eslint-disable no-undef */
 
 const Mosca = require("../../src/mosca");
-const client = require("../moscaSetup").clientSetup;
-const packet = require("../moscaSetup").packetSetup;
+const client = require("./moscaSetup").clientSetup;
+const packet = require("./moscaSetup").packetSetup;
 const config = require("../../src/config");
-const agent = require("../moscaSetup").agentSetup;
+const agent = require("./moscaSetup").agentSetup;
 const TLSSocket = require("tls").TLSSocket;
 const ioTAgent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = new Mosca.MqttBackend();
-const mockCert = require("../certMocks");
+const mockCert = require("./certMocks");
 jest.mock('fs');
 jest.mock('tls');
 
