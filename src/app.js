@@ -29,7 +29,6 @@ function getHttpServer() {
 }
 
 function initApp(healthChecker, metricStore) {
-    console.log('initApp isInitialized', isInitialized);
     app = express();
     app.use(bodyParser.json());
     if (healthChecker) {
