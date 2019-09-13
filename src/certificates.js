@@ -98,18 +98,20 @@ class Certificates {
      */
     _callbackOpenSSL() {
         return (err, buffer) => {
-            let crlTextBuffer = buffer.toString();
             if (err && err.length) {
                 logger.warn(`OpenSSL error ${err.toString()}`, TAG);
                 //kill process
                 throw Error(`OpenSSL error ${err.toString()}`);
-            } else if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
-                this.revokeSerialNumberSet = new Set();
-                logger.debug(`No certificate revoked found.`, TAG);
             } else {
-                const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
-                this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
-                logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
+                let crlTextBuffer = buffer.toString();
+                if (Certificates._checkHasNoRevoked(crlTextBuffer)) {
+                    this.revokeSerialNumberSet = new Set();
+                    logger.debug(`No certificate revoked found.`, TAG);
+                } else {
+                    const revokeSerialNumberArr = Certificates._extractSerialNumber(crlTextBuffer);
+                    this.revokeSerialNumberSet = new Set(revokeSerialNumberArr);
+                    logger.debug(`Revoked certificates serial numbers: ${revokeSerialNumberArr}`, TAG);
+                }
             }
         };
     }
