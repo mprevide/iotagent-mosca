@@ -1,6 +1,9 @@
+"use strict";
 const logger = require("@dojot/dojot-module-logger").logger;
+const CronJob = require('cron').CronJob;
 const IoTAgent = require("./iotagent").IoTAgent;
 const AgentHealthChecker = require("./healthcheck").AgentHealthChecker;
+const Certificates = require("./certificates");
 const app = require("./app");
 const config = require("./config");
 const TAG = { filename: "main" };
@@ -25,9 +28,26 @@ try {
   agent.initHealthCheck(healthChecker.healthChecker);
   logger.info(`... health checker started`, TAG);
 
+  //If null the CRL will not be updated after initialization
+  if(config.mosca_tls.crlUpdateTime) {
+    logger.info(`Initializing cron to update CRL every ${config.mosca_tls.crlUpdateTime}...`, TAG);
+    const jobUpdateCRL = new CronJob(config.mosca_tls.crlUpdateTime, function () {
+      Certificates.updateCRL().then(() => {
+        logger.info(`... Succeeded to cron to update CRL .`, TAG);
+      }).catch(error => {
+        logger.debug(`... Failed to cron to update CRL  (${error}).`, TAG);
+        //kill process
+        throw error;
+      });
+    });
+    jobUpdateCRL.start();
+    logger.info(`... cron to update CRL every ${config.mosca_tls.crlUpdateTime} started`, TAG);
+  }
+
   logger.info(`Initializing endpoints...`, TAG);
   app.initApp(healthChecker.healthChecker, agent.metricsStore);
   logger.info(`... app initialized.`, TAG);
+
 
 } catch (error) {
   logger.error(`Caught an error: ${error}`, TAG);

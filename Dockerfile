@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 FROM node:8.14.0-alpine
-RUN apk add --no-cache python py-openssl py-requests tini
+RUN apk add --no-cache python py-openssl py-requests tini openssl
 
 ENTRYPOINT ["/sbin/tini", "--"]
 

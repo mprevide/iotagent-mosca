@@ -4,6 +4,7 @@ const tls = require("tls");
 const defaultConfig = require("./config");
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
+const Certificates = require("./certificates");
 
 const TAG = { filename: "mqtt-backend"};
 const logLevel = defaultConfig.logger.level;
@@ -25,6 +26,7 @@ class MqttBackend {
         keyPath: config.mosca_tls.key,
         certPath: config.mosca_tls.cert,
         caPaths: [config.mosca_tls.ca],
+        crl: Certificates.getCRLPEM(),
         requestCert: true, // enable requesting certificate from clients
         rejectUnauthorized: true // only accept clients with valid certificate
       }
@@ -315,15 +317,24 @@ class MqttBackend {
       const clientCertificate = client.connection.stream.getPeerCertificate();
 
       if (
-        !clientCertificate.hasOwnProperty("subject") ||
-        !clientCertificate.subject.hasOwnProperty("CN") ||
-        clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
+          !clientCertificate.hasOwnProperty("subject") ||
+          !clientCertificate.subject.hasOwnProperty("CN") ||
+          clientCertificate.subject.CN !== `${ids.tenant}:${ids.device}`) {
 
         // reject client connection
         logger.debug(`... client certificate is invalid.`, TAG);
-        logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`);
+        logger.warn(`Connection rejected for ${client.id} due to invalid client certificate.`, TAG);
         callback(null, false);
 
+        return;
+        //If null the CRL will not be updated after initialization, so verification is not required.
+      } else if (defaultConfig.mosca_tls.crlUpdateTime &&
+          (!clientCertificate.hasOwnProperty("serialNumber") ||
+              Certificates.hasRevoked(clientCertificate.serialNumber))) {
+        // reject client connection
+        logger.debug(`... client certificate has been Revoked or without serialNumber.`, TAG);
+        logger.warn(`Connection rejected for ${client.id} due to revoked client certificate or without serialNumber.`, TAG);
+        callback(null, false);
         return;
       }
     }
@@ -412,7 +423,7 @@ class MqttBackend {
       }
     }
 
-    /**
+  /**
    * Check authorization when a MQTT client wants to publish something or
    * subscribe to a particular topic.
    *

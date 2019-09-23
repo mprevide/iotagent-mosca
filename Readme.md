@@ -1,7 +1,7 @@
 # dojot iotagent-mosca
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![codecov](https://codecov.io/gh/dojot/iotagent-mosca/branch/master/graph/badge.svg)](https://codecov.io/gh/dojot/iotagent-mosca)
+[![codecov](https://codecov.io/gh/dojot/iotagent-mosca/branch/development/graph/badge.svg)](https://codecov.io/gh/dojot/iotagent-mosca)
 
 IoT agents ought to receive messages from physical devices (directly or through a gateway) and send them commands in order to configure them. This IoT agent, receive messages via MQTT with JSON payloads.
 
@@ -68,6 +68,7 @@ LOG_LEVEL               | logger level (debug, error, warning, info)          | 
 MOSCA_TLS_SECURE_CERT   | Mosca TLS **certificate** path                      | ```<project-path>```/mosca/certs/mosca.crt
 MOSCA_TLS_SECURE_KEY    | Mosca TLS **key** path                              | ```<project-path>```/mosca/certs/mosca.key
 MOSCA_TLS_CA_CERT       | Mosca TLS **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
+MOSCA_TLS_CRL_CERT      | Mosca TLS **certificate revocation list** path      | ```<project-path>```/mosca/certs/ca.crl
 MOSCA_TLS_DNS_LIST      | Mosca TLS DNS list (separated by a comma)           | mqtt,mosca,localhost
 MOSCA_TLS_CON_MAX_LIFETIME  | TLS: Maximum lifetime of a connection in ms (If is 0 then is disabled)          | 7200000
 MOSCA_TLS_CON_IDLE_TIMEOUT  | TLS: The idle timeout for a connection in ms (If is 0 then is disabled)         | 1800000
@@ -80,6 +81,7 @@ MQTTREST_EJBCA_URL      | Mqtt Rest api ejbca utl                             | 
 MQTTREST_CA_NAME        | Mqtt Rest api certificate authority name            | IOTmidCA
 MQTTREST_KEY_LENGHT     | Mqtt Rest api key length                            | 2048
 MQTTREST_KAFKA_HOST     | Mqtt Rest api kafka hostname                        | kafka:9092
+MQTTREST_CRL_UPDATE_TIME| CRL will be updated every set time. If null the CRL will not be updated after initialization. By default will be updated every 2 hours. (Read up on cron patterns here http://crontab.org/).    | '0 */2 * * *'
 
 
 *HealthCheck is responsible for monitoring all important internal states, connections to services and resources used (CPU and memory)

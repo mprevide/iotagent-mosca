@@ -16,19 +16,22 @@ const IoTAgent = require("../../src/iotagent").IoTAgent;
 const defaultConfig = require("../../src/config");
 const HealthChecker = require("../../src/healthcheck").AgentHealthChecker;
 const Metrics = require("../../src/metrics").Metrics;
-const moscaSetup = require("../moscaSetup");
+const moscaSetup = require("./moscaSetup");
 
+jest.mock('fs');
 //
 // Mocking dependencies
 //
 jest.mock("mosca");
 jest.mock("@dojot/iotagent-nodejs");
 
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': "TEST"};
 
 describe("Mosca backend", () => {
     beforeEach(() => {
         mosca.Server.mockClear();
         jest.resetModules();
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
     });
     afterEach(() => {
         mosca.Server.mockReset();

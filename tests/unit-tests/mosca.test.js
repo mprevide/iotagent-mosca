@@ -1,13 +1,18 @@
 /* eslint-disable no-undef */
 
 const Mosca = require("../../src/mosca");
-const client = require("../moscaSetup").clientSetup;
-const packet = require("../moscaSetup").packetSetup;
+const client = require("./moscaSetup").clientSetup;
+const packet = require("./moscaSetup").packetSetup;
 const config = require("../../src/config");
-const agent = require("../moscaSetup").agentSetup;
+const agent = require("./moscaSetup").agentSetup;
 const TLSSocket = require("tls").TLSSocket;
 const ioTAgent = require('@dojot/iotagent-nodejs').IoTAgent;
 const mosca = new Mosca.MqttBackend();
+const mockCert = require("./certMocks");
+jest.mock('fs');
+jest.mock('tls');
+
+const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': mockCert.mockCrlWithRevoke.PEM};
 
 jest.mock('tls');
 jest.mock('@dojot/iotagent-nodejs');
@@ -19,6 +24,7 @@ describe("Testing Mosca functions", () => {
         jest.resetModules();
         jest.clearAllMocks();
         jest.resetAllMocks();
+        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
     });
 
     test("Should define the attribute agentCallback as the string passed as argument", () => {
@@ -71,13 +77,42 @@ describe("Testing Mosca functions", () => {
         spy.mockRestore();
     });
 
+    test("Testing  authenticate : for a authorized client, find device and without serialnumber (revoked)", (done) => {
+
+        TLSSocket.mockImplementation(() => {
+            const rv = Object.create(TLSSocket.prototype);
+            rv.getPeerCertificate = function () {
+                return {subject: {CN: client.id}};
+            };
+            return rv;
+        });
+        client.connection.stream = new TLSSocket(null);
+
+        ioTAgent.mockImplementation(() => {
+            const rv = Object.create(ioTAgent.prototype);
+            rv.getDevice = function (deviceId, tenantId) {
+                return Promise.resolve();
+            };
+            return rv;
+        });
+
+        const mosca2 = new Mosca.MqttBackend(new ioTAgent());
+
+        mosca2.authenticate(client, "", "", (param1, param2) => {
+            expect(param1).toBeNull();
+            expect(param2).toBeFalsy();
+            done();
+        });
+
+    });
+
 
     test("Testing  authenticate : for a authorized client and find device", (done) => {
 
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: client.id}};
+                return {subject: {CN: client.id}, serialNumber: 'XXXXXXX'};
             };
             return rv;
         });
@@ -106,7 +141,7 @@ describe("Testing Mosca functions", () => {
         TLSSocket.mockImplementation(() => {
             const rv = Object.create(TLSSocket.prototype);
             rv.getPeerCertificate = function () {
-                return {subject: {CN: client.id}};
+                return {subject: {CN: client.id} ,  serialNumber: 'XXXXXXXxxxx'};
             };
             return rv;
         });
@@ -187,17 +222,43 @@ describe("Testing Mosca functions", () => {
     });
 
     test("Should split a string passed as first argument and return a debug message", () => {
+
         mosca.onMessage('message');
         mosca._processMessage(packet, client);
-        expect(mosca.agentCallback).toEqual("message");
 
+        expect(mosca.agentCallback).toEqual("message");
         expect(mosca._processMessage(packet, null)).toBeUndefined();
+
 
         packet.topic = '$SYS/admin/6dc341/attrs';
-        packet.payload = {'message': 'ashfhasdjfkasdfaksfdasfasdfasdhfasdfasdhfhasdfhasdfasdfhkasdhflasdfhasdhfasdjfiopasdfjnasfgasdfjasdfoasdfhasdlflasdfjlasdlçfjklçasdfoasfgakljkl'};
-
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
         mosca.agentCallbackInternal = jest.fn();
         expect(mosca._processMessage(packet, null)).toBeUndefined();
+
+
+        packet.topic = '$SYS/admin/6dc341/attrs';
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
+        config.DojotToDevicePayloadSize = 0;
+        mosca.agentCallbackInternal = jest.fn();
+        expect(mosca._processMessage(packet, null)).toBeUndefined();
+
+
+
+        packet.topic = '';
+        config.DojotToDevicePayloadSize = 256000000;
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
+        config.deviceToDojotPayloadSize =  0;
+        mosca.agentCallbackInternal = jest.fn();
+        expect(mosca._processMessage(packet, client)).toBeUndefined();
+
+
+        packet.topic = '';
+        packet.payload = '{"message": "xxxxxxxxxxxxxxxxxxxxxx"}';
+        config.DojotToDevicePayloadSize = 256000000;
+        config.deviceToDojotPayloadSize =  256000000;
+        mosca.agentCallbackInternal = jest.fn();
+        mosca.agentCallback = jest.fn((tenant, device, data) =>{});
+        expect(mosca._processMessage(packet, client)).toBeUndefined();
     });
 
     test("_processMessage without agentCallBack", () => {
@@ -285,7 +346,7 @@ describe("Testing Mosca functions", () => {
         newMosca.cache.set(client.id, {tenant: 'admin', deviceId: 'u86fda', client: client});
         const cacheEntry = newMosca.cache.get(client.id);
 
-        newMosca.maxLifetimeTimeoutTLS.set(client.id,jest.fn());
+        newMosca.maxLifetimeTimeoutTLS.set(client.id, jest.fn());
         let disconnect = newMosca.disconnectDevice('admin', 'u86fda');
         expect(disconnect).toBeDefined();
         expect(disconnect.deviceId).toEqual('u86fda');
@@ -325,5 +386,10 @@ describe("Testing Mosca functions", () => {
 
         expect(client.close).not.toHaveBeenCalled();
         expect(cacheEntry.deviceId).toBeUndefined();
+    });
+
+    test("_setMoscaCallbacks", () => {
+        const newMosca = new Mosca.MqttBackend(agent);
+        newMosca._setMoscaCallbacks();
     });
 });
