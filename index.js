@@ -18,7 +18,7 @@ var lastMetricsInfo = {
 
 // Base iot-agent
 logger.debug("Initializing IoT agent...");
-var iota = new iotalib.IoTAgent();
+var iota = new iotalib.IoTAgent(config);
 iota.init().then(() => {
   const redisClient = redis.createClient(`redis://${config.backend_host}:${config.backend_port}`);
   const healthChecker = new AgentHealthChecker(iota.messenger, redisClient);
