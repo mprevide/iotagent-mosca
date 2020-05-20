@@ -14,10 +14,10 @@ class IoTAgent {
    * Constructor
    * @param {MqttBackend} mqttBackend The MQTT backend to be used by this agent
    */
-  constructor() {
+  constructor(config) {
     // Base iot-agent
     logger.debug("Initializing IoT agent...", TAG);
-    this.agent = new Agent();
+    this.agent = new Agent(config);
     this.agent.init();
     logger.debug("... IoT agent was initialized", TAG);
 
