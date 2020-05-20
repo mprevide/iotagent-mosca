@@ -21,7 +21,7 @@ try {
   }
 
   logger.info(`Starting IoT agent MQTT...`, TAG);
-  const agent = new IoTAgent();
+  const agent = new IoTAgent(config);
   logger.info(`... IoT agent MQTT initialization started.`, TAG);
   logger.info(`Starting health checker...`, TAG);
   const healthChecker = new AgentHealthChecker();
