@@ -6,12 +6,8 @@ const mockCrlNoRevokeRevoke = mockCert.mockCrlNoRevokeRevoke;
 const mockCrlWithRevoke = mockCert.mockCrlWithRevoke;
 const mockCRLAxios = mockCert.mockCRLAxios;
 
-jest.mock('fs');
 jest.mock("openssl-nodejs");
 jest.useFakeTimers();
-
-const FOLDER_PRESENT_CONFIG = {'./mosca/certs/ca.crl': mockCrlNoRevokeRevoke.PEM};
-const NO_FOLDER_CONFIG = {};
 
 describe("Certificates", () => {
 
@@ -22,22 +18,6 @@ describe("Certificates", () => {
     });
 
     afterAll(() => {
-    });
-
-    it("shouldnt build a Cerficiates", (done) => {
-        require("fs").__createMockFiles(NO_FOLDER_CONFIG);
-        try {
-            require('../../src/certificates.js');
-        } catch (e) {
-            done();
-        }
-    });
-
-    it("should build a Cerficiates", () => {
-        require("fs").__createMockFiles(FOLDER_PRESENT_CONFIG);
-        const Certificat = require('../../src/certificates.js');
-        expect(Certificat).toBeDefined();
-        expect(Certificat.getCRLPEM()).toBe(mockCrlNoRevokeRevoke.PEM);
     });
 
 
@@ -63,7 +43,7 @@ describe("Certificates", () => {
             done();
         }
 
-        
+
     });
 
     it("_callbackOpenSSL without revoked", async () => {
@@ -79,9 +59,7 @@ describe("Certificates", () => {
         const Certificates = require('../../src/certificates.js');
         expect(Certificates).toBeDefined();
         Certificates.crlPEM = null;
-        jest.mock("axios", () => {
-            return jest.fn(() => Promise.resolve({status: 200, data: {CRL: mockCRLAxios.raw}}));
-        });
+        jest.mock("axios", () => jest.fn(() => Promise.resolve({status: 200, data: {crl: mockCRLAxios.PEM}})));
 
         const updateCRLPromise = Certificates.updateCRL();
 
@@ -96,9 +74,7 @@ describe("Certificates", () => {
         const Certificates = require('../../src/certificates.js');
         expect(Certificates).toBeDefined();
         Certificates.crlPEM = null;
-        jest.mock("axios", () => {
-            return jest.fn(() => Promise.resolve({status: 500, error: "Error"}));
-        });
+        jest.mock("axios", () => jest.fn(() => Promise.resolve({status: 500, error: "Error"})));
 
         const updateCRLPromise = Certificates.updateCRL();
 

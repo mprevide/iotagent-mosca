@@ -1,6 +1,7 @@
 "use strict";
 const mosca = require("mosca");
 const tls = require("tls");
+const fs = require('fs');
 const defaultConfig = require("./config");
 const logger = require("@dojot/dojot-module-logger").logger;
 const util = require("util");
@@ -26,7 +27,7 @@ class MqttBackend {
         keyPath: config.mosca_tls.key,
         certPath: config.mosca_tls.cert,
         caPaths: [config.mosca_tls.ca],
-        crl: Certificates.getCRLPEM(),
+        crl: fs.readFile(config.mosca_tls.crl),
         requestCert: true, // enable requesting certificate from clients
         rejectUnauthorized: true // only accept clients with valid certificate
       }
@@ -315,7 +316,6 @@ class MqttBackend {
     logger.debug(`Checking its certificates...`, TAG);
     if (client.connection.stream instanceof tls.TLSSocket) {
       const clientCertificate = client.connection.stream.getPeerCertificate();
-
       if (
           !clientCertificate.hasOwnProperty("subject") ||
           !clientCertificate.subject.hasOwnProperty("CN") ||
