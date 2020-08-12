@@ -113,7 +113,7 @@ class Certificates {
     updateCRL() {
 
         const {pkiApiUrl} = config.mosca_tls;
-        const url = `${pkiApiUrl}/internal/api/v1/throw-away/ca/crl?update=true`;
+        const url = `${pkiApiUrl}/internal/api/v1/throw-away/ca/crl`;
         return new Promise((resolve, reject) => {
             logger.info(`Starting update CRL...`, TAG);
             axios({
