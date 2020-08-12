@@ -96,7 +96,7 @@ def retrieveCAChain(ejbcaApiUrl):
 
 def retrieveCACRL(EJBCA_API_URL):
     response = requests.get(EJBCA_API_URL + "/internal/api/v1/throw-away/ca/crl",
-                            headers=defaultHeader, params={'update': 'true'})
+                            headers=defaultHeader)
     if response.status_code == 200:
         return json.loads(response.content)['crl']
 
