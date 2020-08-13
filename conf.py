@@ -1,15 +1,16 @@
 # configuration file
 import os
 
-EJBCA_API_URL = os.environ.get("MQTTREST_EJBCA_URL", "http://ejbca:5583")
+ejbcaApiUrl = os.environ.get(
+    "MOSCA_TLS_X509_IDENTITY_MGMT ", "http://x509-identity-mgmt:3000")
 
-CAName = os.environ.get("MQTTREST_CA_NAME", "IOTmidCA")
+keyLength = 4096
 
-keyLength = int(os.environ.get("MQTTREST_KEY_LENGHT", 2048))
+hostName = os.environ.get("HOSTNAME", "iotagent-mosca-mqtt")
 
-kafkaHost = os.environ.get("MQTTREST_KAFKA_HOST", "kafka:9092")
+CName = os.environ.get("MOSCA_TLS_CNAME", hostName)
 
-subjectAltNameDnsList = os.environ.get("MOSCA_TLS_DNS_LIST", "mqtt,mosca,localhost").split(',')
+subjectAltNameDnsList = os.environ.get(
+    "MOSCA_TLS_DNS_LIST", "mqtt,mosca,localhost").split(',')
 
-ACLfilePath = "./mosca/certs/access.acl"
 certsDir = "./mosca/certs/"
