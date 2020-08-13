@@ -28,13 +28,12 @@ config.mosca_tls = {
     key: process.env.MOSCA_TLS_SECURE_KEY || './mosca/certs/mosca.key',
     ca: process.env.MOSCA_TLS_CA_CERT || './mosca/certs/ca.crt',
     crl: process.env.MOSCA_TLS_CA_CRL || './mosca/certs/ca.crl',
-    pkiApiUrl: process.env.MQTTREST_EJBCA_URL || 'http://ejbca:5583',
-    caName: process.env.MQTTREST_CA_NAME || 'IOTmidCA',
+    pkiApiUrl: process.env.MOSCA_TLS_X509_IDENTITY_MGMT || 'http://x509-identity-mgmt:3000',
     //If null the CRL will not be updated after initialization
     //Read up on cron patterns here (http://crontab.org/)
     //By default will be updated every 2 hours, if null disabled
     //Eg. : '0 */2 * * *' -> every 2 hours
-    crlUpdateTime: process.env.MQTTREST_CRL_UPDATE_TIME || '0 */2 * * *',
+    crlUpdateTime: process.env.MOSCA_TLS_CRL_UPDATE_TIME || '0 */2 * * *',
     maxLifetime: _zeroToDisabled(process.env.MOSCA_TLS_CON_MAX_LIFETIME, 7200000),
     idleTimeout: _zeroToDisabled(process.env.MOSCA_TLS_CON_IDLE_TIMEOUT, 1800000),
 };
@@ -103,12 +102,12 @@ config.dojot = {
     },
     events: {
         tenantEvent: {
-        NEW_TENANT: "new-tenant",
-        DELETE_TENANT: "delete-tenant"
+            NEW_TENANT: "new-tenant",
+            DELETE_TENANT: "delete-tenant"
         },
         tenantActionType: {
-        CREATE: "create",
-        DELETE: "delete"
+            CREATE: "create",
+            DELETE: "delete"
         }
     }
 };

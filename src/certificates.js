@@ -1,6 +1,6 @@
 "use strict";
 const axios = require('axios');
-const fs = require('fs');
+const util = require("util");
 const logger = require("@dojot/dojot-module-logger").logger;
 const openssl = require('openssl-nodejs');
 const config = require("./config");
@@ -16,29 +16,8 @@ class Certificates {
      *
      */
     constructor() {
-        //create crlPEM
         this.crlPEM = null;
-        //filled crlPEM
-        this._initCRL();
-
         this.revokeSerialNumberSet = new Set();
-    }
-
-    /**
-     * Fills CRL with initial
-     * @private
-     */
-    _initCRL() {
-        if (config.mosca_tls.crl) {
-            try {
-                this.crlPEM = fs.readFile(config.mosca_tls.crl);
-            } catch (err) {
-                logger.warn(`CRL File not found`, TAG);
-                throw err;
-            }
-        } else if (config.mosca_tls.crlUpdateTime) {
-            this.updateCRL();
-        }
     }
 
     /**
@@ -47,16 +26,6 @@ class Certificates {
      */
     getCRLPEM() {
         return this.crlPEM;
-    }
-
-    /**
-     *  Add PEM pattern headers
-     * @param rawCRL
-     * @returns {string}
-     * @private
-     */
-    static _formatCRLPEM(rawCRL) {
-        return `-----BEGIN X509 CRL-----\n${Certificates._formatPEM(rawCRL)}-----END X509 CRL-----\n`;
     }
 
     /**
@@ -71,9 +40,8 @@ class Certificates {
     /**
      * Update set with Certificate Revocation List
      * @private
-     * @param crlPEM
      */
-    _updateRevokeSerialSet(crlPEM) {
+    _updateRevokeSerialSet() {
         logger.debug(`Starting openssl parse CRL to add Revoke Serial Numbers `, TAG);
         openssl(
             [
@@ -81,7 +49,7 @@ class Certificates {
                 '-in',
                 {
                     name: 'ca.crl',
-                    buffer: Buffer.from(crlPEM, 'ascii')
+                    buffer: Buffer.from(this.crlPEM, 'ascii')
                 },
                 '-text',
                 '-noout'
@@ -144,8 +112,8 @@ class Certificates {
      */
     updateCRL() {
 
-        const {pkiApiUrl, caName} = config.mosca_tls;
-        const url = `${pkiApiUrl}/ca/${caName}/crl?update=true`;
+        const {pkiApiUrl} = config.mosca_tls;
+        const url = `${pkiApiUrl}/internal/api/v1/throw-away/ca/crl`;
         return new Promise((resolve, reject) => {
             logger.info(`Starting update CRL...`, TAG);
             axios({
@@ -157,14 +125,14 @@ class Certificates {
                 url: url,
             }).then(response => {
                 if (response.status === 200) {
-                    logger.debug(`HTTP response ${response}`, TAG);
-                    const {data: {CRL}} = response;
-                    this.crlPEM = Certificates._formatCRLPEM(CRL);
-                    this._updateRevokeSerialSet(this.crlPEM);
+                    logger.debug(`HTTP response ${util.inspect(response)}`, TAG);
+                    const {data: {crl}} = response;
+                    this.crlPEM = crl;
+                    this._updateRevokeSerialSet();
                     resolve();
                 } else {
                     logger.warn(`HTTP code ${response.status} to access ${url}`, TAG);
-                    logger.debug(`HTTP response ERROR ${response}`, TAG);
+                    logger.debug(`HTTP response ERROR ${util.inspect(response)}`, TAG);
                     reject(new Error(`HTTP code ${response.status} to access ${url}`));
                 }
             }).catch(error => {
@@ -176,18 +144,6 @@ class Certificates {
         });
     }
 
-    /**
-     * Formats for PEM Body
-     * @param rawCertificate
-     * @returns {void | string | never}
-     * @private
-     */
-    static _formatPEM(rawCertificate) {
-        return rawCertificate
-            .toString('base64')
-            .match(/.{0,64}/g)
-            .join('\n');
-    }
 }
 
 /**
