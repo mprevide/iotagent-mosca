@@ -70,18 +70,17 @@ MOSCA_TLS_SECURE_KEY    | Mosca TLS **key** path                              | 
 MOSCA_TLS_CA_CERT       | Mosca TLS **certificate authority** path            | ```<project-path>```/mosca/certs/ca.crt
 MOSCA_TLS_CRL_CERT      | Mosca TLS **certificate revocation list** path      | ```<project-path>```/mosca/certs/ca.crl
 MOSCA_TLS_DNS_LIST      | Mosca TLS DNS list (separated by a comma)           | mqtt,mosca,localhost
+MOSCA_TLS_CNAME  | To be used in the certificate common name         | iotagent-mosca-mqtt or the value of the HOSTNAME environment variable if it exists
 MOSCA_TLS_CON_MAX_LIFETIME  | TLS: Maximum lifetime of a connection in ms (If is 0 then is disabled)          | 7200000
 MOSCA_TLS_CON_IDLE_TIMEOUT  | TLS: The idle timeout for a connection in ms (If is 0 then is disabled)         | 1800000
+MOSCA_TLS_X509_IDENTITY_MGMT | Address of the EJBCA service                        | http://x509-identity-mgmt:3000
+MOSCA_TLS_CRL_UPDATE_TIME| CRL will be updated every set time. If null the CRL will not be updated after initialization. By default will be updated every 2 hours. (Read up on cron patterns here http://crontab.org/).    | '0 */2 * * *'
 HC_UPTIME_TIMEOUT       | *healtcheck uptime timeout in milliseconds          | 30000
 HC_MEMORY_USAGE_TIMEOUT | *healtcheck memory usage timeout in milliseconds    | 30000
 HC_CPU_USAGE_TIMEOUT    | *healtcheck cpu usage timeout in milliseconds       | 30000
 HC_MONGODB_TIMEOUT      | *healtcheck mongodb monitor timeout in milliseconds | 30000
 HC_KAFKA_TIMEOUT        | *healtcheck Kafka monitor timeout in milliseconds   | 30000
-MQTTREST_EJBCA_URL      | Mqtt Rest api ejbca utl                             | http://ejbca:5583
-MQTTREST_CA_NAME        | Mqtt Rest api certificate authority name            | IOTmidCA
-MQTTREST_KEY_LENGHT     | Mqtt Rest api key length                            | 2048
 MQTTREST_KAFKA_HOST     | Mqtt Rest api kafka hostname                        | kafka:9092
-MQTTREST_CRL_UPDATE_TIME| CRL will be updated every set time. If null the CRL will not be updated after initialization. By default will be updated every 2 hours. (Read up on cron patterns here http://crontab.org/).    | '0 */2 * * *'
 
 
 *HealthCheck is responsible for monitoring all important internal states, connections to services and resources used (CPU and memory)
