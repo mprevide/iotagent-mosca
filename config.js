@@ -10,7 +10,8 @@ config.allow_unsecured_mode = process.env.ALLOW_UNSECURED_MODE || 'false';
 config.mosca_tls = {
     cert: process.env.MOSCA_TLS_SECURE_CERT || '/opt/iot-agent/mosca/certs/mosca.crt',
     key: process.env.MOSCA_TLS_SECURE_KEY || '/opt/iot-agent/mosca/certs/mosca.key',
-    ca: process.env.MOSCA_TLS_CA_CERT || '/opt/iot-agent/mosca/certs/ca.crt'
+    ca: process.env.MOSCA_TLS_CA_CERT || '/opt/iot-agent/mosca/certs/ca.crt',
+    crl: process.env.MOSCA_TLS_CA_CRL || '/opt/iot-agent/mosca/certs/ca.crl'
 };
 
 config.healthcheck = {
@@ -77,12 +78,12 @@ config.dojot = {
     },
     events: {
         tenantEvent: {
-        NEW_TENANT: "new-tenant",
-        DELETE_TENANT: "delete-tenant"
+            NEW_TENANT: "new-tenant",
+            DELETE_TENANT: "delete-tenant"
         },
         tenantActionType: {
-        CREATE: "create",
-        DELETE: "delete"
+            CREATE: "create",
+            DELETE: "delete"
         }
     }
 };
