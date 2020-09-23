@@ -5,6 +5,7 @@ var dojotLogger = require("@dojot/dojot-module-logger");
 var logger = dojotLogger.logger;
 var config = require('./config');
 const tls = require("tls");
+const fs = require('fs');
 var AgentHealthChecker = require("./healthcheck");
 var redis = require("redis");
 var lastMetricsInfo = {
