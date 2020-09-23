@@ -80,6 +80,7 @@ iota.init().then(() => {
       keyPath: config.mosca_tls.key,
       certPath: config.mosca_tls.cert,
       caPaths: [config.mosca_tls.ca],
+      crl: fs.readFile(config.mosca_tls.crl),
       requestCert: true, // enable requesting certificate from clients
       rejectUnauthorized: true // only accept clients with valid certificate
     }
