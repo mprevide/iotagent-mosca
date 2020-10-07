@@ -108,6 +108,9 @@ The topic where the device must publish is ```/mosca/fg7ad/attrs```
 }
 ```
 
+You can also publish a message and include its `timestamp` in UNIX or ISO format, with a precision
+of seconds or milliseconds. If no timestamp is passed, this IoT agent will create it by its own.
+
 This example uses mosquitto_pub tool, available with mosquitto_clients package. To send a message to iotagent-mosca via MQTT, open a terminal and run
 
 ```mosquitto_pub -h localhost -i "mosca" -t /mosca/fg7ad/attrs -m '{"attr1": value1, "attr2": value2 }'```
@@ -128,4 +131,4 @@ The data received from this topic is intended to do something in the device, lik
 
 
 ## API Documentation
-URL to api documentation https://dojot.github.io/iotagent-mosca/apiary_development.html && https://dojot.github.io/iotagent-mosca/apiary_latest.html for development and latest version of this IoT agent. 
+URL to api documentation https://dojot.github.io/iotagent-mosca/apiary_development.html && https://dojot.github.io/iotagent-mosca/apiary_latest.html for development and latest version of this IoT agent.
