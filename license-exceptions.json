@@ -1,0 +1,31 @@
+{
+  "exceptions": {
+    "@sinonjs/text-encoding@0.7.1": {
+      "reason": "It allows to choose between Unlicense OR Apache-2.0"
+    },
+    "abab@2.0.1": {
+      "reason": "The 3-Clause BSD license is compatible with Apache-2.0"
+    },
+    "atob@2.1.2": {
+      "reason": "It allows to choose between MIT OR Apache-2.0"
+    },
+    "bitsyntax@0.0.4": {
+      "reason": "is licensed under the MIT License, compatible with Apache-2.0"
+    },
+    "buffers@0.1.1": {
+      "reason": "is licensed under the MIT/X11 License, compatible with Apache-2.0"
+    },
+    "cluster-key-slot@1.1.0": {
+      "reason": "Licensed under the Apache License, Version 2.0"
+    },
+    "flexbuffer@0.0.6": {
+      "reason": "is licensed under the MIT License, compatible with Apache-2.0"
+    },
+    "node-ninja@1.0.2": {
+      "reason": "is licensed under the MPL-2.0 License, compatible with Apache-2.0"
+    },
+    "taffydb@2.6.2": {
+      "reason": "is licensed under the MIT License, compatible with Apache-2.0"
+    }
+  }
+}

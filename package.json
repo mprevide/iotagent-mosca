@@ -1,13 +1,14 @@
 {
   "name": "@dojot/iotagent-mqtt",
-  "version": "0.3.0-beta.3",
+  "version": "0.4.0",
   "description": "An IoT agent for MQTT with JSON payload",
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
     "test": "jest tests/unit-tests/*.test.js --coverage",
     "start": "node src/index.js",
-    "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
+    "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf",
+    "check-licenses": "apache2-license-checker"
   },
   "repository": {
     "type": "git",
@@ -19,15 +20,21 @@
     "mqtt"
   ],
   "author": "Matheus Magalhaes",
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/dojot/iotagent-mosca/issues"
   },
   "homepage": "https://github.com/dojot/iotagent-mosca/#readme",
-  "license": "GPL-3.0",
   "dependencies": {
-    "@dojot/dojot-module-logger": "0.0.1-alpha.5",
-    "@dojot/healthcheck": "^0.0.1-alpha",
-    "@dojot/iotagent-nodejs": "^2.1.0-beta.10",
+    "@dojot/dojot-module-logger": "^0.1.0",
+    "@dojot/healthcheck": "^0.1.0",
+    "@dojot/iotagent-nodejs": "^2.2.0",
     "cron": "^1.7.2",
     "express": "4.16.3",
     "mosca": "^2.8.0",
@@ -44,7 +51,8 @@
     "mocha": "^5.2.0",
     "moxios": "^0.4.0",
     "sinon": "^6.1.4",
-    "supertest": "^4.0.2"
+    "supertest": "^4.0.2",
+    "@bbc/apache2-license-checker": "^1.1.4"
   },
   "jest": {
     "coverageDirectory": "./coverage/",
