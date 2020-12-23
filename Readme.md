@@ -1,6 +1,6 @@
 # dojot iotagent-mosca
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License badge](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![codecov](https://codecov.io/gh/dojot/iotagent-mosca/branch/development/graph/badge.svg)](https://codecov.io/gh/dojot/iotagent-mosca)
 
 IoT agents ought to receive messages from physical devices (directly or through a gateway) and send them commands in order to configure them. This IoT agent, receive messages via MQTT with JSON payloads.
