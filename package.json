@@ -1,6 +1,6 @@
 {
   "name": "@dojot/iotagent-mqtt",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "An IoT agent for MQTT with JSON payload",
   "main": "index.js",
   "bin": "index.js",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@dojot/dojot-module-logger": "^0.1.0",
     "@dojot/healthcheck": "^0.1.0",
-    "@dojot/iotagent-nodejs": "^2.2.0",
+    "@dojot/iotagent-nodejs": "^3.0.0",
     "cron": "^1.7.2",
     "express": "4.16.3",
     "mosca": "^2.8.0",
